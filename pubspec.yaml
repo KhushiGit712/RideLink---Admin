@@ -1,0 +1,154 @@
+name: ridelink_admin
+description: "A new Flutter project."
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  
+  # State Management
+  get: ^4.7.3
+  get_storage: ^2.1.1
+
+  # Network Connection
+  dio: ^5.11.1
+  http_parser: ^4.1.2
+  connectivity_plus: ^7.3.2
+  network_info_plus: ^8.2.2
+
+
+  # Utils
+  intl: ^0.20.3
+  fluttertoast: ^10.0.0
+  url_launcher: ^6.3.2
+  cached_network_image: ^4.0.4
+  flutter_svg: ^2.3.0
+  lottie: ^3.6.1
+  crypto: ^3.0.7
+  shimmer: ^4.0.0
+  device_info_plus: ^13.3.0
+  animations: ^3.0.0
+  dropdown_button2: ^3.1.0
+  flutter_html: ^3.0.0
+
+  # Image of File picker
+  image_picker: ^1.2.3
+  permission_handler: ^13.0.2
+  path_provider: ^2.1.6
+
+  # This app utils
+  readmore: ^3.0.0
+  grouped_list: ^6.0.0
+  pin_code_fields: ^10.1.1
+  easy_date_timeline: ^2.0.9
+  control_style: ^0.1.2
+  carousel_slider: ^5.1.2
+
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  lint: ^2.8.0
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/
+    - assets/inter/
+    - assets/icons/
+    - assets/images/
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/inter/Inter_18pt-Thin.ttf
+        - asset: assets/inter/Inter_18pt-ExtraLight.ttf
+        - asset: assets/inter/Inter_18pt-Light.ttf
+        - asset: assets/inter/Inter_18pt-Regular.ttf
+        - asset: assets/inter/Inter_18pt-Medium.ttf
+        - asset: assets/inter/Inter_18pt-SemiBold.ttf
+        - asset: assets/inter/Inter_18pt-Bold.ttf
+        - asset: assets/inter/Inter_18pt-ExtraBold.ttf
+        - asset: assets/inter/Inter_18pt-Black.ttf
+        - asset: assets/inter/Inter_24pt-Thin.ttf
+        - asset: assets/inter/Inter_24pt-ExtraLight.ttf
+        - asset: assets/inter/Inter_24pt-Light.ttf
+        - asset: assets/inter/Inter_24pt-Regular.ttf
+        - asset: assets/inter/Inter_24pt-Medium.ttf
+        - asset: assets/inter/Inter_24pt-SemiBold.ttf
+        - asset: assets/inter/Inter_24pt-Bold.ttf
+        - asset: assets/inter/Inter_24pt-ExtraBold.ttf
+        - asset: assets/inter/Inter_24pt-Black.ttf
+        - asset: assets/inter/Inter_28pt-Thin.ttf
+        - asset: assets/inter/Inter_28pt-ExtraLight.ttf
+        - asset: assets/inter/Inter_28pt-Light.ttf
+        - asset: assets/inter/Inter_28pt-Regular.ttf
+        - asset: assets/inter/Inter_28pt-Medium.ttf
+        - asset: assets/inter/Inter_28pt-SemiBold.ttf
+        - asset: assets/inter/Inter_28pt-Bold.ttf
+        - asset: assets/inter/Inter_28pt-ExtraBold.ttf
+        - asset: assets/inter/Inter_28pt-Black.ttf
+        - asset: assets/inter/Inter_18pt-ThinItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_18pt-ExtraLightItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_18pt-LightItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_18pt-Italic.ttf
+          style: italic
+        - asset: assets/inter/Inter_18pt-MediumItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_18pt-SemiBoldItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_18pt-BoldItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_18pt-ExtraBoldItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_18pt-BlackItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_24pt-ThinItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_24pt-ExtraLightItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_24pt-LightItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_24pt-Italic.ttf
+          style: italic
+        - asset: assets/inter/Inter_24pt-MediumItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_24pt-SemiBoldItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_24pt-BoldItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_24pt-ExtraBoldItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_24pt-BlackItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_28pt-ThinItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_28pt-ExtraLightItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_28pt-LightItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_28pt-Italic.ttf
+          style: italic
+        - asset: assets/inter/Inter_28pt-MediumItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_28pt-SemiBoldItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_28pt-BoldItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_28pt-ExtraBoldItalic.ttf
+          style: italic
+        - asset: assets/inter/Inter_28pt-BlackItalic.ttf
+          style: italic
