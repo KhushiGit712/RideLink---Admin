@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:ridelink_admin/core/constants/app_colors.dart';
 import 'package:ridelink_admin/theme/app_text_style.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/driver_document_controller.dart';
+import 'package:ridelink_admin/views/dashboard/widgets/image_zoom_dialog.dart';
 import 'package:ridelink_admin/widgets/app_button.dart';
 
 class DriverReviewDrawer extends StatelessWidget {
@@ -19,10 +20,10 @@ class DriverReviewDrawer extends StatelessWidget {
       return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         backgroundColor: Colors.white,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
         child: Container(
-          width: 820,
-          constraints: const BoxConstraints(maxHeight: 780),
+          width: 900,
+          constraints: const BoxConstraints(maxHeight: 820),
           padding: const EdgeInsets.all(28),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,46 +76,74 @@ class DriverReviewDrawer extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
               const Divider(height: 1, color: Color(0xFFE2E8F0)),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
 
-              // Driver & Vehicle Overview Info Cards
+              // Driver & Vehicle Information (Section 3.2.1)
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: _buildInfoCard(
-                      title: 'Contact Details',
-                      icon: Icons.contact_phone_rounded,
+                      title: 'Driver Details',
+                      icon: Icons.person_rounded,
                       items: [
-                        {'label': 'Email Address', 'value': req.driverEmail},
+                        {'label': 'Full Name', 'value': req.driverName},
                         {'label': 'Phone Number', 'value': req.driverPhone},
+                        {'label': 'Email Address', 'value': req.driverEmail},
                       ],
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildInfoCard(
-                      title: 'Vehicle Information',
+                      title: 'Vehicle Details',
                       icon: Icons.directions_car_filled_rounded,
                       items: [
                         {
-                          'label': 'Vehicle Model',
-                          'value': '${req.vehicleModel} (${req.vehicleType})',
+                          'label': 'Make & Model',
+                          'value': '${req.vehicleMake} ${req.vehicleModel} (${req.vehicleYear})',
                         },
-                        {
-                          'label': 'License Plate',
-                          'value': req.vehiclePlateNumber,
-                        },
+                        {'label': 'License Plate', 'value': req.vehiclePlate},
+                        {'label': 'Passenger Seats', 'value': '${req.passengerSeats} Seats (${req.vehicleType})'},
                       ],
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 20),
+              if (req.rejectionReason != null && req.rejectionReason!.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFFECACA)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Previous Rejection Reason: ${req.rejectionReason}',
+                          style: const TextStyle(
+                            color: Color(0xFFB91C1C),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 18),
               Text(
-                'SUBMITTED VERIFICATION DOCUMENTS (${req.documents.length})',
+                'DOCUMENT REVIEW & VERIFICATION (LICENSE, RC, INSURANCE)',
                 style: AppTextStyle.text12MediumOrSmall.copyWith(
                   fontWeight: FontWeight.w700,
                   color: const Color(0xFF475569),
@@ -123,167 +152,205 @@ class DriverReviewDrawer extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // Scrollable Documents List
+              // Document Viewer Cards (Section 3.2.2)
               Expanded(
-                child: ListView.separated(
-                  itemCount: req.documents.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 14),
-                  itemBuilder: (context, index) {
-                    final doc = req.documents[index];
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: doc.status == 'Approved'
-                              ? const Color(0xFF86EFAC)
-                              : doc.status == 'Rejected'
-                              ? const Color(0xFFFCA5A5)
-                              : const Color(0xFFE2E8F0),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // Driver's License: Front & Back
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          // Thumbnail Preview Box
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              width: 80,
-                              height: 60,
-                              color: const Color(0xFFCBD5E1),
-                              child: Stack(
-                                children: [
-                                  Image.network(
-                                    doc.fileUrl,
-                                    width: 80,
-                                    height: 60,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => const Center(
-                                      child: Icon(
-                                        Icons.description_rounded,
-                                        color: Color(0xFF64748B),
-                                      ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.badge_rounded, color: Color(0xFF2563EB), size: 20),
+                                const SizedBox(width: 10),
+                                Text(
+                                  "Driver's License (Front & Back)",
+                                  style: AppTextStyle.text16Medium.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF0F172A),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEFF6FF),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    'Number: ${req.licenseNumber}',
+                                    style: const TextStyle(
+                                      color: Color(0xFF2563EB),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
                                     ),
                                   ),
-                                  Positioned(
-                                    right: 4,
-                                    bottom: 4,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.6),
-                                        borderRadius: BorderRadius.circular(4),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildDocPreviewCard(
+                                    label: "License Front Preview",
+                                    imageUrl: req.licenseFrontUrl,
+                                    subLabel: 'Click to zoom front image',
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildDocPreviewCard(
+                                    label: "License Back Preview",
+                                    imageUrl: req.licenseBackUrl,
+                                    subLabel: 'Click to zoom back image',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // RC Document & Vehicle Insurance Row
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Registration Certificate (RC)
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.file_copy_rounded, color: Color(0xFF0284C7), size: 20),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          'Vehicle Registration (RC)',
+                                          style: AppTextStyle.text14Medium.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: const Color(0xFF0F172A),
+                                          ),
+                                        ),
                                       ),
-                                      child: const Icon(
-                                        Icons.zoom_in,
-                                        color: Colors.white,
-                                        size: 14,
-                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Plate: ${req.vehiclePlate}',
+                                    style: AppTextStyle.text12MediumOrSmall.copyWith(
+                                      color: const Color(0xFF64748B),
                                     ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  _buildDocPreviewCard(
+                                    label: 'Registration Certificate',
+                                    imageUrl: req.rcDocumentUrl,
+                                    subLabel: 'RC document preview',
                                   ),
                                 ],
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      doc.docType,
-                                      style: AppTextStyle.text16Medium.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: const Color(0xFF0F172A),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    _buildDocStatusBadge(doc.status),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Doc #: ${doc.documentNumber} • Exp: ${doc.expiryDate}',
-                                  style: AppTextStyle.text12MediumOrSmall
-                                      .copyWith(color: const Color(0xFF64748B)),
-                                ),
-                                if (doc.rejectionNote != null &&
-                                    doc.rejectionNote!.isNotEmpty) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Note: ${doc.rejectionNote}',
-                                    style: AppTextStyle.text12MediumOrSmall
-                                        .copyWith(
-                                          color: const Color(0xFFDC2626),
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                  ),
-                                ],
-                              ],
                             ),
                           ),
 
-                          // Individual Approve / Reject Buttons
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  Icons.check_circle_rounded,
-                                  color: doc.status == 'Approved'
-                                      ? const Color(0xFF16A34A)
-                                      : const Color(0xFF94A3B8),
-                                  size: 28,
-                                ),
-                                tooltip: 'Approve Document',
-                                onPressed: () {
-                                  driverCtrl.toggleDocItemStatus(
-                                    doc.id,
-                                    'Approved',
-                                  );
-                                },
+                          const SizedBox(width: 16),
+
+                          // Vehicle Insurance
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: const Color(0xFFE2E8F0)),
                               ),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.cancel_rounded,
-                                  color: doc.status == 'Rejected'
-                                      ? const Color(0xFFDC2626)
-                                      : const Color(0xFF94A3B8),
-                                  size: 28,
-                                ),
-                                tooltip: 'Reject Document',
-                                onPressed: () {
-                                  driverCtrl.toggleDocItemStatus(
-                                    doc.id,
-                                    'Rejected',
-                                  );
-                                },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.verified_rounded, color: Color(0xFF16A34A), size: 20),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          'Vehicle Insurance',
+                                          style: AppTextStyle.text14Medium.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: const Color(0xFF0F172A),
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFDCFCE7),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          'Exp: ${req.insuranceExpiryDate}',
+                                          style: const TextStyle(
+                                            color: Color(0xFF15803D),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Policy expiry: ${req.insuranceExpiryDate}',
+                                    style: AppTextStyle.text12MediumOrSmall.copyWith(
+                                      color: const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  _buildDocPreviewCard(
+                                    label: 'Insurance Policy',
+                                    imageUrl: req.insuranceDocUrl,
+                                    subLabel: 'Insurance policy document preview',
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ],
                       ),
-                    );
-                  },
+                    ],
+                  ),
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
               const Divider(height: 1, color: Color(0xFFE2E8F0)),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
 
-              // Overall Action Bar (Approve All or Reject Request)
+              // Admin Action Buttons (Section 3.2.3)
               Row(
                 children: [
+                  // Reject Application Button
                   OutlinedButton.icon(
-                    onPressed: () =>
-                        _showRejectionDialog(context, driverCtrl, req.id),
-                    icon: const Icon(
-                      Icons.cancel_outlined,
-                      color: Color(0xFFDC2626),
-                    ),
+                    onPressed: () => _showRejectionDialog(context, driverCtrl, req.id),
+                    icon: const Icon(Icons.cancel_outlined, color: Color(0xFFDC2626)),
                     label: Text(
                       'Reject Application',
                       style: AppTextStyle.text14Medium.copyWith(
@@ -292,27 +359,17 @@ class DriverReviewDrawer extends StatelessWidget {
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                       side: const BorderSide(color: Color(0xFFFCA5A5)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                   const Spacer(),
                   OutlinedButton(
                     onPressed: () => driverCtrl.closeReviewModal(),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       side: const BorderSide(color: Color(0xFFCBD5E1)),
                     ),
                     child: Text(
@@ -324,13 +381,14 @@ class DriverReviewDrawer extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 14),
+                  // Approve Driver Button
                   SizedBox(
                     width: 220,
                     child: AppButton(
-                      label: 'Approve & Verify Driver',
+                      label: 'Approve Driver',
                       backgroundColor: const Color(0xFF16A34A),
-                      onPressed: () {
-                        driverCtrl.approveRequest(req.id);
+                      onPressed: () async {
+                        await driverCtrl.approveRequest(req.id);
                         driverCtrl.closeReviewModal();
                       },
                     ),
@@ -342,6 +400,92 @@ class DriverReviewDrawer extends StatelessWidget {
         ),
       );
     });
+  }
+
+  Widget _buildDocPreviewCard({
+    required String label,
+    required String imageUrl,
+    required String subLabel,
+  }) {
+    return InkWell(
+      onTap: () {
+        ImageZoomDialog.show(
+          title: label,
+          imageUrl: imageUrl,
+          subtitle: subLabel,
+        );
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        height: 120,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFCBD5E1)),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Stack(
+            children: [
+              Image.network(
+                imageUrl,
+                width: double.infinity,
+                height: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.description_outlined, color: Color(0xFF94A3B8), size: 32),
+                      const SizedBox(height: 4),
+                      Text(label, style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          label,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2563EB),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Icon(Icons.zoom_in, color: Colors.white, size: 14),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildInfoCard({
@@ -374,7 +518,7 @@ class DriverReviewDrawer extends StatelessWidget {
           const SizedBox(height: 10),
           ...items.map(
             (item) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.only(bottom: 5),
               child: Row(
                 children: [
                   Text(
@@ -427,31 +571,6 @@ class DriverReviewDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildDocStatusBadge(String status) {
-    Color bg = const Color(0xFFF1F5F9);
-    Color fg = const Color(0xFF64748B);
-
-    if (status == 'Approved') {
-      bg = const Color(0xFFDCFCE7);
-      fg = const Color(0xFF15803D);
-    } else if (status == 'Rejected') {
-      bg = const Color(0xFFFEE2E2);
-      fg = const Color(0xFFB91C1C);
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-
   void _showRejectionDialog(
     BuildContext context,
     DriverDocumentController driverCtrl,
@@ -461,7 +580,7 @@ class DriverReviewDrawer extends StatelessWidget {
       Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Container(
-          width: 450,
+          width: 480,
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -476,7 +595,7 @@ class DriverReviewDrawer extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'Reject Verification Request',
+                    'Reject Application',
                     style: AppTextStyle.text18Semibold.copyWith(
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF0F172A),
@@ -486,14 +605,14 @@ class DriverReviewDrawer extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Please select or enter the primary reason for rejecting this driver verification application.',
+                'Select a reason for rejection. This notification will be delivered directly to the driver with instructions to re-upload.',
                 style: AppTextStyle.text14Medium.copyWith(
                   color: const Color(0xFF64748B),
                 ),
               ),
               const SizedBox(height: 16),
               Text(
-                'Rejection Reason',
+                'Rejection Reason *',
                 style: AppTextStyle.text14Medium.copyWith(
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF1E293B),
@@ -502,7 +621,7 @@ class DriverReviewDrawer extends StatelessWidget {
               const SizedBox(height: 8),
               Obx(
                 () => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
                     border: Border.all(color: AppColors.stroke),
                     borderRadius: BorderRadius.circular(12),
@@ -511,9 +630,7 @@ class DriverReviewDrawer extends StatelessWidget {
                     child: DropdownButton<String>(
                       value: driverCtrl.selectedPredefinedReason.value,
                       isExpanded: true,
-                      items: driverCtrl.predefinedRejectionReasons.map((
-                        reason,
-                      ) {
+                      items: driverCtrl.predefinedRejectionReasons.map((reason) {
                         return DropdownMenuItem(
                           value: reason,
                           child: Text(reason),
@@ -529,12 +646,19 @@ class DriverReviewDrawer extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
+              Text(
+                'Optional Note for Driver',
+                style: AppTextStyle.text14Medium.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF475569),
+                ),
+              ),
+              const SizedBox(height: 8),
               TextField(
                 controller: driverCtrl.rejectionReasonController,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  hintText:
-                      'Add optional additional feedback notes for the driver...',
+                  hintText: 'e.g. Please upload a clear photo of your driver license front and back...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -552,23 +676,22 @@ class DriverReviewDrawer extends StatelessWidget {
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFDC2626),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                     ),
-                    onPressed: () {
-                      final customNote = driverCtrl
-                          .rejectionReasonController
-                          .text
-                          .trim();
+                    onPressed: () async {
+                      final customNote =
+                          driverCtrl.rejectionReasonController.text.trim();
                       final reason = customNote.isNotEmpty
                           ? '${driverCtrl.selectedPredefinedReason.value} - $customNote'
                           : driverCtrl.selectedPredefinedReason.value;
 
-                      driverCtrl.rejectRequest(requestId, reason);
                       Get.back(); // close reason dialog
+                      await driverCtrl.rejectRequest(requestId, reason);
                       driverCtrl.closeReviewModal(); // close review modal
                     },
                     child: const Text(
                       'Confirm Rejection',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],

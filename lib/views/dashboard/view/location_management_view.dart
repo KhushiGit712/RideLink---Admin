@@ -15,7 +15,7 @@ class LocationManagementView extends GetView<LocationController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section Header + Action Button
+          // Section Header + Action Button (Section 5.1)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -23,7 +23,7 @@ class LocationManagementView extends GetView<LocationController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Locations & Hubs Management',
+                    'Allowed Locations & Service Areas',
                     style: AppTextStyle.text20Medium.copyWith(
                       fontWeight: FontWeight.bold,
                       fontSize: 22,
@@ -32,7 +32,7 @@ class LocationManagementView extends GetView<LocationController> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Configure service locations, hubs, pickup points, and terminal zones.',
+                    'Defines cities and operating corridors where RideLink operates. Rides outside active areas will be prevented.',
                     style: AppTextStyle.text12MediumOrSmall.copyWith(
                       color: const Color(0xFF64748B),
                     ),
@@ -44,9 +44,9 @@ class LocationManagementView extends GetView<LocationController> {
                   controller.prepareAddLocation();
                   Get.dialog(const AddEditLocationDialog());
                 },
-                icon: const Icon(Icons.add_rounded, color: Colors.white),
+                icon: const Icon(Icons.add_location_alt_rounded, color: Colors.white),
                 label: Text(
-                  'Add New Location',
+                  '+ Add New Location',
                   style: AppTextStyle.text14Medium.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -73,15 +73,15 @@ class LocationManagementView extends GetView<LocationController> {
             () => Row(
               children: [
                 _buildStatCard(
-                  title: 'Total Locations',
+                  title: 'Total Service Areas',
                   value: '${controller.totalCount}',
-                  icon: Icons.map_rounded,
+                  icon: Icons.public_rounded,
                   color: const Color(0xFF2563EB),
                   bgColor: const Color(0xFFEFF6FF),
                 ),
                 const SizedBox(width: 16),
                 _buildStatCard(
-                  title: 'Active Hubs',
+                  title: 'Active Operating Zones',
                   value: '${controller.activeCount}',
                   icon: Icons.check_circle_rounded,
                   color: const Color(0xFF16A34A),
@@ -89,7 +89,7 @@ class LocationManagementView extends GetView<LocationController> {
                 ),
                 const SizedBox(width: 16),
                 _buildStatCard(
-                  title: 'Inactive / Maintenance',
+                  title: 'Inactive / Expansion Areas',
                   value: '${controller.inactiveCount}',
                   icon: Icons.pause_circle_rounded,
                   color: const Color(0xFFEA580C),
@@ -123,8 +123,7 @@ class LocationManagementView extends GetView<LocationController> {
                     child: TextField(
                       onChanged: (val) => controller.setSearchQuery(val),
                       decoration: const InputDecoration(
-                        hintText:
-                            'Search location by name, address, or city...',
+                        hintText: 'Search city name, state, or location ID...',
                         prefixIcon: Icon(
                           Icons.search_rounded,
                           color: Color(0xFF94A3B8),
@@ -161,55 +160,14 @@ class LocationManagementView extends GetView<LocationController> {
                     }).toList(),
                   ),
                 ),
-
-                const SizedBox(width: 8),
-
-                // Type Filter Dropdown
-                Obx(
-                  () => Container(
-                    height: 44,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: controller.selectedTypeFilter.value,
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'All',
-                            child: Text('All Types'),
-                          ),
-                          DropdownMenuItem(value: 'Hub', child: Text('Hubs')),
-                          DropdownMenuItem(
-                            value: 'Pickup Point',
-                            child: Text('Pickup Points'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Dropoff Zone',
-                            child: Text('Dropoff Zones'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Terminal',
-                            child: Text('Terminals'),
-                          ),
-                        ],
-                        onChanged: (val) {
-                          if (val != null) controller.setTypeFilter(val);
-                        },
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
 
           const SizedBox(height: 20),
 
-          // Main Data Table Container
+          // Service Areas Table (Section 5.1)
+          // Columns: City/Area Name, State/Region, Operating Radius, Center Coordinates, Status (Active/Inactive), Action (Edit/Delete)
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -232,7 +190,7 @@ class LocationManagementView extends GetView<LocationController> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'No locations match your search criteria',
+                          'No service locations match your search criteria',
                           style: AppTextStyle.text16Medium.copyWith(
                             color: const Color(0xFF64748B),
                             fontWeight: FontWeight.bold,
@@ -240,7 +198,7 @@ class LocationManagementView extends GetView<LocationController> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Try clearing filters or adding a new location',
+                          'Try clearing filters or adding a new operating area',
                           style: AppTextStyle.text12MediumOrSmall.copyWith(
                             color: const Color(0xFF94A3B8),
                           ),
@@ -260,18 +218,20 @@ class LocationManagementView extends GetView<LocationController> {
                     ),
                     columns: const [
                       DataColumn(
-                        label: Text('LOCATION ID', style: _headerStyle),
+                        label: Text('AREA ID', style: _headerStyle),
                       ),
                       DataColumn(
-                        label: Text('NAME & ADDRESS', style: _headerStyle),
+                        label: Text('CITY / AREA NAME', style: _headerStyle),
                       ),
                       DataColumn(
-                        label: Text('CITY / STATE', style: _headerStyle),
+                        label: Text('STATE / REGION', style: _headerStyle),
                       ),
                       DataColumn(
-                        label: Text('COORDINATES', style: _headerStyle),
+                        label: Text('OPERATING RADIUS', style: _headerStyle),
                       ),
-                      DataColumn(label: Text('TYPE', style: _headerStyle)),
+                      DataColumn(
+                        label: Text('CENTER LAT & LNG', style: _headerStyle),
+                      ),
                       DataColumn(label: Text('STATUS', style: _headerStyle)),
                       DataColumn(label: Text('ACTIONS', style: _headerStyle)),
                     ],
@@ -288,30 +248,57 @@ class LocationManagementView extends GetView<LocationController> {
                             ),
                           ),
                           DataCell(
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            Row(
                               children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEFF6FF),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(Icons.location_city_rounded, color: Color(0xFF2563EB), size: 18),
+                                ),
+                                const SizedBox(width: 12),
                                 Text(
-                                  loc.name,
+                                  loc.cityName,
                                   style: AppTextStyle.text14Medium.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: const Color(0xFF0F172A),
                                   ),
-                                ),
-                                Text(
-                                  loc.address,
-                                  style: AppTextStyle.text12MediumOrSmall
-                                      .copyWith(color: const Color(0xFF64748B)),
                                 ),
                               ],
                             ),
                           ),
                           DataCell(
                             Text(
-                              '${loc.city}, ${loc.state}',
+                              loc.state,
                               style: AppTextStyle.text14Medium.copyWith(
                                 color: const Color(0xFF334155),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.radar_rounded, size: 14, color: Color(0xFF2563EB)),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    loc.radiusFormatted,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -335,7 +322,6 @@ class LocationManagementView extends GetView<LocationController> {
                               ],
                             ),
                           ),
-                          DataCell(_buildTypeChip(loc.type)),
                           DataCell(
                             Row(
                               children: [
@@ -382,7 +368,7 @@ class LocationManagementView extends GetView<LocationController> {
                                   ),
                                   tooltip: 'Delete Location',
                                   onPressed: () =>
-                                      _confirmDelete(context, loc.id, loc.name),
+                                      _confirmDelete(context, loc.id, loc.cityName),
                                 ),
                               ],
                             ),
@@ -458,40 +444,12 @@ class LocationManagementView extends GetView<LocationController> {
     );
   }
 
-  Widget _buildTypeChip(String type) {
-    Color bg = const Color(0xFFEFF6FF);
-    Color fg = const Color(0xFF2563EB);
-
-    if (type == 'Pickup Point') {
-      bg = const Color(0xFFF0FDF4);
-      fg = const Color(0xFF16A34A);
-    } else if (type == 'Dropoff Zone') {
-      bg = const Color(0xFFFFF7ED);
-      fg = const Color(0xFFEA580C);
-    } else if (type == 'Terminal') {
-      bg = const Color(0xFFFAF5FF);
-      fg = const Color(0xFF9333EA);
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        type,
-        style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
   void _confirmDelete(BuildContext context, String id, String name) {
     Get.dialog(
       AlertDialog(
-        title: const Text('Delete Location'),
+        title: const Text('Delete Service Area'),
         content: Text(
-          'Are you sure you want to delete "$name"? This action cannot be undone.',
+          'Are you sure you want to delete "$name"? Rides will no longer be allowed in this corridor.',
         ),
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),

@@ -2,54 +2,65 @@ import 'package:intl/intl.dart';
 
 class LocationModel {
   final String id;
-  final String name;
-  final String address;
-  final String city;
-  final String state;
-  final double latitude;
-  final double longitude;
-  final String type; // Hub, Pickup Point, Dropoff Zone, Terminal
+  final String cityName; // e.g. "Austin Metro Area"
+  final String state; // e.g. "Texas"
+  final double centerLat;
+  final double centerLng;
+  final double radiusKm; // Operating radius in KM
   final bool isActive;
+  final String? address;
+  final String? type; // Hub, Pickup Point, Dropoff Zone, Terminal
   final int capacity;
   final DateTime createdAt;
 
   LocationModel({
     required this.id,
-    required this.name,
-    required this.address,
-    required this.city,
+    required this.cityName,
     required this.state,
-    required this.latitude,
-    required this.longitude,
-    required this.type,
+    required this.centerLat,
+    required this.centerLng,
+    this.radiusKm = 35.0,
     this.isActive = true,
+    this.address,
+    this.type = 'Hub',
     this.capacity = 10,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
+  // Backward-compatible getters
+  String get name => cityName;
+  String get city => cityName;
+  double get latitude => centerLat;
+  double get longitude => centerLng;
+
   LocationModel copyWith({
     String? id,
-    String? name,
-    String? address,
-    String? city,
+    String? cityName,
     String? state,
-    double? latitude,
-    double? longitude,
-    String? type,
+    double? centerLat,
+    double? centerLng,
+    double? radiusKm,
     bool? isActive,
+    String? address,
+    String? type,
     int? capacity,
     DateTime? createdAt,
+    // Support legacy copyWith args
+    String? name,
+    String? city,
+    double? latitude,
+    double? longitude,
   }) {
     return LocationModel(
       id: id ?? this.id,
-      name: name ?? this.name,
-      address: address ?? this.address,
-      city: city ?? this.city,
+      cityName: cityName ?? name ?? city ?? this.cityName,
       state: state ?? this.state,
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
-      type: type ?? this.type,
+      centerLat: centerLat ?? latitude ?? this.centerLat,
+      centerLng: centerLng ?? longitude ?? this.centerLng,
+      radiusKm: radiusKm ?? this.radiusKm,
       isActive: isActive ?? this.isActive,
+      address: address ?? this.address,
+      type: type ?? this.type,
       capacity: capacity ?? this.capacity,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -58,14 +69,18 @@ class LocationModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
-      'address': address,
-      'city': city,
+      'cityName': cityName,
+      'name': cityName,
+      'city': cityName,
       'state': state,
-      'latitude': latitude,
-      'longitude': longitude,
-      'type': type,
+      'centerLat': centerLat,
+      'centerLng': centerLng,
+      'latitude': centerLat,
+      'longitude': centerLng,
+      'radiusKm': radiusKm,
       'isActive': isActive,
+      'address': address ?? '',
+      'type': type ?? 'Hub',
       'capacity': capacity,
       'createdAt': createdAt.toIso8601String(),
     };
@@ -74,14 +89,18 @@ class LocationModel {
   factory LocationModel.fromJson(Map<String, dynamic> json) {
     return LocationModel(
       id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      address: json['address'] ?? '',
-      city: json['city'] ?? '',
+      cityName: json['cityName'] ?? json['name'] ?? json['city'] ?? '',
       state: json['state'] ?? '',
-      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
-      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
-      type: json['type'] ?? 'Hub',
+      centerLat: (json['centerLat'] as num?)?.toDouble() ??
+          (json['latitude'] as num?)?.toDouble() ??
+          0.0,
+      centerLng: (json['centerLng'] as num?)?.toDouble() ??
+          (json['longitude'] as num?)?.toDouble() ??
+          0.0,
+      radiusKm: (json['radiusKm'] as num?)?.toDouble() ?? 35.0,
       isActive: json['isActive'] ?? true,
+      address: json['address'],
+      type: json['type'] ?? 'Hub',
       capacity: json['capacity'] ?? 10,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
@@ -94,6 +113,10 @@ class LocationModel {
   }
 
   String get coordinatesFormatted {
-    return '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}';
+    return '${centerLat.toStringAsFixed(4)}, ${centerLng.toStringAsFixed(4)}';
+  }
+
+  String get radiusFormatted {
+    return '${radiusKm.toStringAsFixed(1)} km';
   }
 }

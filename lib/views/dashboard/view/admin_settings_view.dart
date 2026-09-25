@@ -25,7 +25,7 @@ class AdminSettingsView extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Manage administrator accounts, platform parameters, and Firebase connectivity settings.',
+            'Manage administrator account, session parameters, and platform connectivity.',
             style: AppTextStyle.text12MediumOrSmall.copyWith(
               color: const Color(0xFF64748B),
             ),
@@ -46,34 +46,47 @@ class AdminSettingsView extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const CircleAvatar(
-                      radius: 32,
-                      backgroundColor: Color(0xFF2563EB),
-                      child: Text(
-                        'AD',
-                        style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                    Obx(
+                      () => CircleAvatar(
+                        radius: 32,
+                        backgroundColor: const Color(0xFF2563EB),
+                        child: Text(
+                          authCtrl.userInitials,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 20),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Super Administrator Account',
-                          style: AppTextStyle.text18Semibold.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF0F172A),
+                        Obx(
+                          () => Text(
+                            authCtrl.currentUserName,
+                            style: AppTextStyle.text18Semibold.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF0F172A),
+                            ),
                           ),
                         ),
-                        Text(
-                          'admin@ridelink.com • Static Auth Mode Enabled',
-                          style: AppTextStyle.text14Medium.copyWith(
-                            color: const Color(0xFF64748B),
+                        Obx(
+                          () => Text(
+                            '${authCtrl.currentUserEmail} • Firebase Authenticated',
+                            style: AppTextStyle.text14Medium.copyWith(
+                              color: const Color(0xFF64748B),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFDCFCE7),
                             borderRadius: BorderRadius.circular(20),
@@ -92,11 +105,20 @@ class AdminSettingsView extends StatelessWidget {
                     const Spacer(),
                     OutlinedButton.icon(
                       onPressed: () => authCtrl.onLogout(),
-                      icon: const Icon(Icons.logout_rounded, color: Color(0xFFEF4444)),
-                      label: const Text('Sign Out', style: TextStyle(color: Color(0xFFEF4444))),
+                      icon: const Icon(
+                        Icons.logout_rounded,
+                        color: Color(0xFFEF4444),
+                      ),
+                      label: const Text(
+                        'Sign Out',
+                        style: TextStyle(color: Color(0xFFEF4444)),
+                      ),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xFFFCA5A5)),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
+                        ),
                       ),
                     ),
                   ],
@@ -107,7 +129,7 @@ class AdminSettingsView extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Firebase Integration Banner Note
+          // Firebase Project Status Card
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -123,7 +145,11 @@ class AdminSettingsView extends StatelessWidget {
                     color: const Color(0xFF0284C7),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.cloud_sync_rounded, color: Colors.white, size: 28),
+                  child: const Icon(
+                    Icons.cloud_done_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                 ),
                 const SizedBox(width: 18),
                 Expanded(
@@ -131,7 +157,7 @@ class AdminSettingsView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Firebase Integration Notice',
+                        'Firebase Production Environment',
                         style: AppTextStyle.text16Medium.copyWith(
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF0369A1),
@@ -139,7 +165,7 @@ class AdminSettingsView extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'This UI build includes full GetX reactive state management for Location Management and Driver Document Review Requests. Live Firebase Firestore / Storage bindings can be plugged directly into LocationController and DriverDocumentController in future development.',
+                        'Connected Project: ridelink-d4408 • Authentication Provider: Firebase Auth (Email/Password)',
                         style: AppTextStyle.text14Medium.copyWith(
                           color: const Color(0xFF0C4A6E),
                         ),

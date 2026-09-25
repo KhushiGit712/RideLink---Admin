@@ -105,51 +105,7 @@ class LoginView extends GetView<AuthController> with ValidationMixin {
                         textAlign: TextAlign.center,
                       ),
 
-                      const SizedBox(height: 24),
-
-                      // Demo Auto-fill Helper Banner
-                      InkWell(
-                        onTap: () => controller.fillDemoCredentials(),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEFF6FF),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFBFDBFE)),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.bolt_rounded,
-                                color: Color(0xFF2563EB),
-                                size: 20,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  'Click to Auto-fill Demo Credentials',
-                                  style: AppTextStyle.text12MediumOrSmall
-                                      .copyWith(
-                                        color: const Color(0xFF1D4ED8),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                ),
-                              ),
-                              const Icon(
-                                Icons.touch_app_rounded,
-                                color: Color(0xFF2563EB),
-                                size: 16,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 28),
 
                       // Email Field
                       AppTextFormField1(
@@ -191,7 +147,7 @@ class LoginView extends GetView<AuthController> with ValidationMixin {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 28),
 
                       // Login Button
                       Obx(
@@ -200,18 +156,6 @@ class LoginView extends GetView<AuthController> with ValidationMixin {
                           label: 'Login to Admin Dashboard',
                           isLoading: controller.isLoading.value,
                         ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Credentials Hint Footer
-                      Text(
-                        'Static Demo Credentials: admin@ridelink.com / admin123',
-                        style: AppTextStyle.text12MediumOrSmall.copyWith(
-                          color: const Color(0xFF94A3B8),
-                          fontSize: 11,
-                        ),
-                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),

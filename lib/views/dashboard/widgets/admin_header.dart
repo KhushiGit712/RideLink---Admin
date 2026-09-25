@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ridelink_admin/core/constants/app_colors.dart';
 import 'package:ridelink_admin/theme/app_text_style.dart';
+import 'package:ridelink_admin/views/auth_flow/auth_controller.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/dashboard_controller.dart';
 
 class AdminHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -13,6 +14,9 @@ class AdminHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final dashboardCtrl = Get.find<DashboardController>();
+    final authCtrl = Get.isRegistered<AuthController>()
+        ? Get.find<AuthController>()
+        : null;
 
     return Container(
       height: 70,
@@ -39,14 +43,20 @@ class AdminHeader extends StatelessWidget implements PreferredSizeWidget {
             String subtitle = 'Welcome back! Here is what is happening today.';
 
             if (idx == 1) {
-              title = 'Location Management';
-              subtitle = 'Manage service hubs, pickup points, and dropoff zones.';
+              title = 'Driver KYC Verification';
+              subtitle = 'Review and verify driver identity, license, and vehicle documents.';
             } else if (idx == 2) {
-              title = 'Driver Verification Requests';
-              subtitle = 'Review and verify driver identity and vehicle documents.';
+              title = 'Support System (Driver & Passenger Tickets)';
+              subtitle = 'Manage helpdesk queries, ride issues, and user conversation threads.';
             } else if (idx == 3) {
+              title = 'Allowed Locations & Service Areas';
+              subtitle = 'Configure operating cities, center coordinates, and service radius.';
+            } else if (idx == 4) {
+              title = 'Community Management';
+              subtitle = 'Manage registered user communities and ridership networks.';
+            } else if (idx == 5) {
               title = 'System Settings';
-              subtitle = 'Configure application preferences and portal settings.';
+              subtitle = 'Configure application preferences and administrator portal settings.';
             }
 
             return Column(
@@ -108,7 +118,7 @@ class AdminHeader extends StatelessWidget implements PreferredSizeWidget {
 
           // Notification Bell Icon with Badge
           Obx(() {
-            final count = dashboardCtrl.unreadNotifications.value;
+            final count = dashboardCtrl.unreadNotifications;
             return Stack(
               children: [
                 IconButton(
@@ -119,8 +129,10 @@ class AdminHeader extends StatelessWidget implements PreferredSizeWidget {
                   ),
                   onPressed: () {
                     Get.snackbar(
-                      'Notifications',
-                      '3 new driver document reviews pending inspection.',
+                      'Support Notifications',
+                      count > 0
+                          ? '$count open support inquiries pending admin reply.'
+                          : 'All support inquiries and requests are resolved.',
                       snackPosition: SnackPosition.TOP,
                       backgroundColor: Colors.white,
                       colorText: Colors.black,
@@ -161,12 +173,12 @@ class AdminHeader extends StatelessWidget implements PreferredSizeWidget {
           // User Profile Quick Card
           Row(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 18,
                 backgroundColor: AppColors.primaryColor,
                 child: Text(
-                  'A',
-                  style: TextStyle(
+                  authCtrl?.userInitials ?? 'AD',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -178,20 +190,36 @@ class AdminHeader extends StatelessWidget implements PreferredSizeWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Admin User',
+                    authCtrl?.currentUserName ?? 'Admin User',
                     style: AppTextStyle.text14Medium.copyWith(
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF0F172A),
                     ),
                   ),
                   Text(
-                    'Super Administrator',
+                    authCtrl?.currentUserEmail ?? 'Super Administrator',
                     style: AppTextStyle.text12MediumOrSmall.copyWith(
                       color: const Color(0xFF64748B),
                       fontSize: 11,
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(
+                  Icons.logout_rounded,
+                  color: Color(0xFF94A3B8),
+                  size: 20,
+                ),
+                tooltip: 'Sign Out',
+                onPressed: () {
+                  if (authCtrl != null) {
+                    authCtrl.onLogout();
+                  } else {
+                    Get.find<AuthController>().onLogout();
+                  }
+                },
               ),
             ],
           ),

@@ -19,7 +19,7 @@ class AddEditLocationDialog extends StatelessWidget {
       backgroundColor: Colors.white,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
       child: Container(
-        width: 580,
+        width: 560,
         padding: const EdgeInsets.all(28),
         child: Form(
           key: locCtrl.locationFormKey,
@@ -52,7 +52,7 @@ class AddEditLocationDialog extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isEditing ? 'Edit Location' : 'Add New Location',
+                            isEditing ? 'Edit Service Area' : 'Add New Service Area',
                             style: AppTextStyle.text20Medium.copyWith(
                               fontWeight: FontWeight.bold,
                               fontSize: 20,
@@ -61,8 +61,8 @@ class AddEditLocationDialog extends StatelessWidget {
                           ),
                           Text(
                             isEditing
-                                ? 'Update location metadata and coordinates'
-                                : 'Create a new service hub or pickup/dropoff zone',
+                                ? 'Update center coordinates & operating radius'
+                                : 'Define an allowed operating city and operating radius in KM',
                             style: AppTextStyle.text12MediumOrSmall.copyWith(
                               color: const Color(0xFF64748B),
                             ),
@@ -73,217 +73,152 @@ class AddEditLocationDialog extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: () => Get.back(),
-                    icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Color(0xFF64748B),
+                    ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               const Divider(height: 1, color: Color(0xFFE2E8F0)),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-              // Form Content
-              SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Location Name
-                    AppTextFormField1(
-                      controller: locCtrl.nameController,
-                      label: 'Location / Hub Name',
-                      hintText: 'e.g. Downtown Central Terminal',
-                      prefixIcon: const Icon(Icons.business_rounded, color: Color(0xFF94A3B8)),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Street Address
-                    AppTextFormField1(
-                      controller: locCtrl.addressController,
-                      label: 'Street Address',
-                      hintText: 'e.g. 500 Market Street, Suite 400',
-                      prefixIcon: const Icon(Icons.location_on_outlined, color: Color(0xFF94A3B8)),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // City & State Row
-                    Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: AppTextFormField1(
-                            controller: locCtrl.cityController,
-                            label: 'City',
-                            hintText: 'e.g. San Francisco',
-                            prefixIcon: const Icon(Icons.location_city_rounded, color: Color(0xFF94A3B8)),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          flex: 1,
-                          child: AppTextFormField1(
-                            controller: locCtrl.stateController,
-                            label: 'State / Region',
-                            hintText: 'e.g. CA',
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Lat & Lng Row
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AppTextFormField1(
-                            controller: locCtrl.latController,
-                            label: 'Latitude',
-                            hintText: 'e.g. 37.7897',
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            prefixIcon: const Icon(Icons.my_location_rounded, color: Color(0xFF94A3B8)),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: AppTextFormField1(
-                            controller: locCtrl.lngController,
-                            label: 'Longitude',
-                            hintText: 'e.g. -122.4005',
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            prefixIcon: const Icon(Icons.my_location_rounded, color: Color(0xFF94A3B8)),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Type & Capacity Row
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Location Type',
-                                style: AppTextStyle.text14Medium.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF1E293B),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Obx(() => Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: AppColors.stroke),
-                                    ),
-                                    child: DropdownButtonHideUnderline(
-                                      child: DropdownButton<String>(
-                                        value: locCtrl.selectedType.value,
-                                        isExpanded: true,
-                                        items: const [
-                                          DropdownMenuItem(
-                                            value: 'Hub',
-                                            child: Text('Hub'),
-                                          ),
-                                          DropdownMenuItem(
-                                            value: 'Pickup Point',
-                                            child: Text('Pickup Point'),
-                                          ),
-                                          DropdownMenuItem(
-                                            value: 'Dropoff Zone',
-                                            child: Text('Dropoff Zone'),
-                                          ),
-                                          DropdownMenuItem(
-                                            value: 'Terminal',
-                                            child: Text('Terminal'),
-                                          ),
-                                        ],
-                                        onChanged: (val) {
-                                          if (val != null) {
-                                            locCtrl.selectedType.value = val;
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                  )),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: AppTextFormField1(
-                            controller: locCtrl.capacityController,
-                            label: 'Vehicle Capacity',
-                            hintText: 'e.g. 25',
-                            keyboardType: TextInputType.number,
-                            prefixIcon: const Icon(Icons.directions_car_outlined, color: Color(0xFF94A3B8)),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Active Status Switch Toggle
-                    Obx(() => Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                locCtrl.isActive.value
-                                    ? Icons.check_circle_rounded
-                                    : Icons.pause_circle_rounded,
-                                color: locCtrl.isActive.value
-                                    ? const Color(0xFF16A34A)
-                                    : const Color(0xFF64748B),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Active Service Status',
-                                      style: AppTextStyle.text14Medium.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: const Color(0xFF0F172A),
-                                      ),
-                                    ),
-                                    Text(
-                                      locCtrl.isActive.value
-                                          ? 'Location will be visible & available for dispatch.'
-                                          : 'Location will be temporarily disabled.',
-                                      style: AppTextStyle.text12MediumOrSmall.copyWith(
-                                        color: const Color(0xFF64748B),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Switch(
-                                value: locCtrl.isActive.value,
-                                activeColor: const Color(0xFF2563EB),
-                                onChanged: (val) => locCtrl.isActive.value = val,
-                              ),
-                            ],
-                          ),
-                        )),
-                  ],
+              // Form Content (Section 5.1 & 7.4)
+              // City / Region Name
+              AppTextFormField1(
+                controller: locCtrl.cityNameController,
+                label: 'City / Region Name',
+                hintText: 'e.g. Austin Metro Area',
+                prefixIcon: const Icon(
+                  Icons.location_city_rounded,
+                  color: Color(0xFF94A3B8),
                 ),
               ),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 16),
+
+              // State / Region & Operating Radius in KM
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: AppTextFormField1(
+                      controller: locCtrl.stateController,
+                      label: 'State / Region',
+                      hintText: 'e.g. Texas',
+                      prefixIcon: const Icon(
+                        Icons.map_outlined,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 1,
+                    child: AppTextFormField1(
+                      controller: locCtrl.radiusKmController,
+                      label: 'Operating Radius (KM)',
+                      hintText: 'e.g. 40.0',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      prefixIcon: const Icon(
+                        Icons.radar_rounded,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Center Latitude & Longitude
+              Row(
+                children: [
+                  Expanded(
+                    child: AppTextFormField1(
+                      controller: locCtrl.latController,
+                      label: 'Center Latitude',
+                      hintText: 'e.g. 30.2672',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      prefixIcon: const Icon(
+                        Icons.my_location_rounded,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: AppTextFormField1(
+                      controller: locCtrl.lngController,
+                      label: 'Center Longitude',
+                      hintText: 'e.g. -97.7431',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      prefixIcon: const Icon(
+                        Icons.my_location_rounded,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Active / Inactive Switch Toggle (Section 5.1)
+              Obx(
+                () => Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        locCtrl.isActive.value
+                            ? Icons.check_circle_rounded
+                            : Icons.pause_circle_rounded,
+                        color: locCtrl.isActive.value
+                            ? const Color(0xFF16A34A)
+                            : const Color(0xFF64748B),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Service Status (${locCtrl.isActive.value ? 'Active' : 'Inactive'})',
+                              style: AppTextStyle.text14Medium.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF0F172A),
+                              ),
+                            ),
+                            Text(
+                              locCtrl.isActive.value
+                                  ? 'Rides can be scheduled & requested within this zone.'
+                                  : 'Disabled. Users will see: "RideLink is not available in this area yet."',
+                              style: AppTextStyle.text12MediumOrSmall.copyWith(
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: locCtrl.isActive.value,
+                        activeColor: const Color(0xFF2563EB),
+                        onChanged: (val) => locCtrl.isActive.value = val,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
 
               // Dialog Actions
               Row(
@@ -292,10 +227,8 @@ class AddEditLocationDialog extends StatelessWidget {
                   OutlinedButton(
                     onPressed: () => Get.back(),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       side: const BorderSide(color: Color(0xFFCBD5E1)),
                     ),
                     child: Text(
@@ -308,9 +241,9 @@ class AddEditLocationDialog extends StatelessWidget {
                   ),
                   const SizedBox(width: 14),
                   SizedBox(
-                    width: 160,
+                    width: 170,
                     child: AppButton(
-                      label: isEditing ? 'Save Changes' : 'Create Location',
+                      label: isEditing ? 'Save Changes' : 'Add Location',
                       onPressed: () {
                         if (locCtrl.saveLocation()) {
                           Get.back();

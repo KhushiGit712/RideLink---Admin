@@ -1,192 +1,105 @@
+import 'dart:async';
+import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ridelink_admin/core/utils/app_snack_bar.dart';
 import 'package:ridelink_admin/data/models/data/driver_document_request_model.dart';
+import 'package:ridelink_admin/data/services/firebase_storage_service.dart';
 
 class DriverDocumentController extends GetxController {
-  final RxList<DriverDocumentRequestModel> requests = <DriverDocumentRequestModel>[].obs;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _requestsSubscription;
+
+  final RxList<DriverDocumentRequestModel> requests =
+      <DriverDocumentRequestModel>[].obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isUploading = false.obs;
+  final RxString uploadProgressMessage = ''.obs;
+
   final RxString searchQuery = ''.obs;
   final RxString selectedStatusTab = 'Pending'.obs; // All, Pending, Approved, Rejected
 
-  final Rx<DriverDocumentRequestModel?> selectedRequest = Rx<DriverDocumentRequestModel?>(null);
+  final Rx<DriverDocumentRequestModel?> selectedRequest =
+      Rx<DriverDocumentRequestModel?>(null);
 
-  final TextEditingController rejectionReasonController = TextEditingController();
-  final RxString selectedPredefinedReason = 'Blurry document image'.obs;
+  final TextEditingController rejectionReasonController =
+      TextEditingController();
+  final RxString selectedPredefinedReason = 'Blurry document'.obs;
 
+  // Options from Specification:
   final List<String> predefinedRejectionReasons = [
-    'Blurry document image',
-    'Expired document date',
-    'Name mismatch on ID',
-    'Unclear license number',
-    'Incomplete vehicle insurance',
-    'Other / Custom reason',
+    'Blurry document',
+    'Expired license',
+    'Invalid insurance',
+    'Mismatched vehicle details',
+    'Other',
   ];
 
   @override
   void onInit() {
     super.onInit();
-    _loadInitialMockRequests();
+    _initFirestoreListener();
   }
 
-  void _loadInitialMockRequests() {
-    requests.assignAll([
-      DriverDocumentRequestModel(
-        id: 'REQ-2026-001',
-        driverId: 'DRV-8801',
-        driverName: 'Alexander Wright',
-        driverEmail: 'alex.wright@example.com',
-        driverPhone: '+1 (415) 892-3341',
-        profileImageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-        vehicleType: 'Sedan',
-        vehicleModel: '2023 Toyota Camry Hybrid',
-        vehiclePlateNumber: '7XYZ890',
-        status: 'Pending',
-        submittedAt: DateTime.now().subtract(const Duration(hours: 3)),
-        documents: [
-          DriverDocumentItem(
-            id: 'DOC-101',
-            docType: 'Driving License',
-            documentNumber: 'DL-SF-9948201',
-            expiryDate: '2028-11-15',
-            fileUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600',
-            status: 'Pending',
-          ),
-          DriverDocumentItem(
-            id: 'DOC-102',
-            docType: 'Vehicle RC / Registration',
-            documentNumber: 'RC-CA-8837190',
-            expiryDate: '2026-08-30',
-            fileUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?w=600',
-            status: 'Pending',
-          ),
-          DriverDocumentItem(
-            id: 'DOC-103',
-            docType: 'Insurance Policy',
-            documentNumber: 'INS-GEICO-77492',
-            expiryDate: '2027-02-14',
-            fileUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?w=600',
-            status: 'Pending',
-          ),
-          DriverDocumentItem(
-            id: 'DOC-104',
-            docType: 'National ID Card',
-            documentNumber: 'SSN-XXX-XX-9182',
-            expiryDate: '2030-05-20',
-            fileUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600',
-            status: 'Pending',
-          ),
-        ],
-      ),
-      DriverDocumentRequestModel(
-        id: 'REQ-2026-002',
-        driverId: 'DRV-8802',
-        driverName: 'Sophia Martinez',
-        driverEmail: 'sophia.m@example.com',
-        driverPhone: '+1 (415) 761-9022',
-        profileImageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-        vehicleType: 'SUV',
-        vehicleModel: '2024 Honda CR-V',
-        vehiclePlateNumber: '8ABC123',
-        status: 'Pending',
-        submittedAt: DateTime.now().subtract(const Duration(hours: 7)),
-        documents: [
-          DriverDocumentItem(
-            id: 'DOC-201',
-            docType: 'Driving License',
-            documentNumber: 'DL-CA-4491029',
-            expiryDate: '2027-04-10',
-            fileUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600',
-            status: 'Pending',
-          ),
-          DriverDocumentItem(
-            id: 'DOC-202',
-            docType: 'Vehicle RC / Registration',
-            documentNumber: 'RC-CA-1102938',
-            expiryDate: '2026-12-01',
-            fileUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?w=600',
-            status: 'Pending',
-          ),
-          DriverDocumentItem(
-            id: 'DOC-203',
-            docType: 'Insurance Policy',
-            documentNumber: 'INS-STATEFARM-993',
-            expiryDate: '2027-09-15',
-            fileUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?w=600',
-            status: 'Pending',
-          ),
-        ],
-      ),
-      DriverDocumentRequestModel(
-        id: 'REQ-2026-003',
-        driverId: 'DRV-8803',
-        driverName: 'Michael Chen',
-        driverEmail: 'mchen.rides@example.com',
-        driverPhone: '+1 (415) 321-4567',
-        profileImageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-        vehicleType: 'Electric',
-        vehicleModel: '2023 Tesla Model 3',
-        vehiclePlateNumber: '9EV456',
-        status: 'Approved',
-        submittedAt: DateTime.now().subtract(const Duration(days: 1)),
-        documents: [
-          DriverDocumentItem(
-            id: 'DOC-301',
-            docType: 'Driving License',
-            documentNumber: 'DL-CA-7718290',
-            expiryDate: '2029-01-22',
-            fileUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600',
-            status: 'Approved',
-          ),
-          DriverDocumentItem(
-            id: 'DOC-302',
-            docType: 'Vehicle RC / Registration',
-            documentNumber: 'RC-CA-9920192',
-            expiryDate: '2027-05-10',
-            fileUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?w=600',
-            status: 'Approved',
-          ),
-        ],
-      ),
-      DriverDocumentRequestModel(
-        id: 'REQ-2026-004',
-        driverId: 'DRV-8804',
-        driverName: 'David Miller',
-        driverEmail: 'david.miller@example.com',
-        driverPhone: '+1 (510) 998-1122',
-        profileImageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-        vehicleType: 'Van',
-        vehicleModel: '2022 Ford Transit Express',
-        vehiclePlateNumber: '6VAN991',
-        status: 'Rejected',
-        rejectionReason: 'Blurry document image (Driving license is illegible)',
-        submittedAt: DateTime.now().subtract(const Duration(days: 2)),
-        documents: [
-          DriverDocumentItem(
-            id: 'DOC-401',
-            docType: 'Driving License',
-            documentNumber: 'DL-CA-XXXXXXX',
-            expiryDate: '2025-01-01',
-            fileUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600',
-            status: 'Rejected',
-            rejectionNote: 'Image is out of focus and expired',
-          ),
-        ],
-      ),
-    ]);
+  void _initFirestoreListener() {
+    isLoading(true);
+    try {
+      _requestsSubscription = _firestore
+          .collection('driver_verifications')
+          .snapshots()
+          .listen(
+        (snapshot) {
+          final List<DriverDocumentRequestModel> loaded = [];
+          for (final doc in snapshot.docs) {
+            try {
+              loaded.add(DriverDocumentRequestModel.fromSnapshot(doc));
+            } catch (e) {
+              debugPrint('Error parsing driver verification doc ${doc.id}: $e');
+            }
+          }
+          // Sort by submittedAt descending
+          loaded.sort((a, b) => b.submittedAt.compareTo(a.submittedAt));
+          requests.assignAll(loaded);
+          isLoading(false);
+
+          // Keep selectedRequest updated if currently open
+          if (selectedRequest.value != null) {
+            final updated = requests.firstWhereOrNull(
+              (r) => r.id == selectedRequest.value!.id,
+            );
+            selectedRequest.value = updated;
+          }
+        },
+        onError: (err) {
+          debugPrint('Firestore driver verifications listener error: $err');
+          isLoading(false);
+          AppSnackBar.error(message: 'Failed to load driver requests: $err');
+        },
+      );
+    } catch (e) {
+      isLoading(false);
+      debugPrint('Error initializing driver verifications listener: $e');
+    }
   }
 
   List<DriverDocumentRequestModel> get filteredRequests {
     return requests.where((req) {
-      final query = searchQuery.value.toLowerCase();
+      final query = searchQuery.value.toLowerCase().trim();
       final matchesSearch = query.isEmpty ||
           req.driverName.toLowerCase().contains(query) ||
           req.driverEmail.toLowerCase().contains(query) ||
           req.driverPhone.toLowerCase().contains(query) ||
-          req.vehiclePlateNumber.toLowerCase().contains(query) ||
+          req.vehiclePlate.toLowerCase().contains(query) ||
+          req.vehicleModel.toLowerCase().contains(query) ||
+          req.driverId.toLowerCase().contains(query) ||
           req.id.toLowerCase().contains(query);
 
       final matchesTab = selectedStatusTab.value == 'All' ||
-          req.status == selectedStatusTab.value;
+          (selectedStatusTab.value == 'Pending' && req.status == 'Pending') ||
+          (selectedStatusTab.value == 'Approved' && req.status == 'Approved') ||
+          (selectedStatusTab.value == 'Rejected' && req.status == 'Rejected');
 
       return matchesSearch && matchesTab;
     }).toList();
@@ -215,7 +128,7 @@ class DriverDocumentController extends GetxController {
     selectedRequest.value = null;
   }
 
-  void toggleDocItemStatus(String docId, String newStatus) {
+  Future<void> toggleDocItemStatus(String docId, String newStatus) async {
     if (selectedRequest.value == null) return;
     final req = selectedRequest.value!;
 
@@ -226,64 +139,237 @@ class DriverDocumentController extends GetxController {
       return doc;
     }).toList();
 
-    final updatedReq = req.copyWith(documents: updatedDocs);
-    selectedRequest.value = updatedReq;
-
-    // Update in main list as well
-    final index = requests.indexWhere((r) => r.id == req.id);
-    if (index != -1) {
-      requests[index] = updatedReq;
+    try {
+      await _firestore.collection('driver_verifications').doc(req.id).update({
+        'documents': updatedDocs.map((e) => e.toJson()).toList(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      AppSnackBar.success(message: 'Document status set to $newStatus.');
+    } catch (e) {
+      AppSnackBar.error(message: 'Failed to update document item: $e');
     }
   }
 
-  void approveRequest(String requestId) {
-    final index = requests.indexWhere((r) => r.id == requestId);
-    if (index != -1) {
-      final current = requests[index];
+  Future<void> approveRequest(String requestId) async {
+    final req = requests.firstWhereOrNull((r) => r.id == requestId);
+    if (req == null) return;
 
-      // Mark all documents as approved
-      final approvedDocs = current.documents.map((d) => d.copyWith(status: 'Approved')).toList();
+    try {
+      // 1. Mark all individual document items as approved
+      final approvedDocs =
+          req.documents.map((d) => d.copyWith(status: 'Approved')).toList();
 
-      final updated = current.copyWith(
-        status: 'Approved',
-        documents: approvedDocs,
-        rejectionReason: null,
-      );
+      // 2. Update Firestore document under driver_verifications
+      await _firestore.collection('driver_verifications').doc(requestId).update({
+        'status': 'Approved',
+        'reviewedAt': FieldValue.serverTimestamp(),
+        'rejectionReason': null,
+        'documents': approvedDocs.map((e) => e.toJson()).toList(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
 
-      requests[index] = updated;
-      if (selectedRequest.value?.id == requestId) {
-        selectedRequest.value = updated;
+      // 3. Update driver user profile in Firestore
+      try {
+        await _firestore.collection('users').doc(req.driverId).set({
+          'isDriverVerified': true,
+          'kycStatus': 'Approved',
+          'vehicleDetails': {
+            'make': req.vehicleMake,
+            'model': req.vehicleModel,
+            'year': req.vehicleYear,
+            'plate': req.vehiclePlate,
+            'seats': req.passengerSeats,
+            'type': req.vehicleType,
+          },
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } catch (e) {
+        debugPrint('Note: Could not update users/${req.driverId}: $e');
       }
 
       AppSnackBar.success(
-        message: 'Driver ${current.driverName} has been approved and verified!',
+        message:
+            'Driver ${req.driverName} approved! Status updated in Firestore.',
       );
+    } catch (e) {
+      AppSnackBar.error(message: 'Failed to approve driver: $e');
     }
   }
 
-  void rejectRequest(String requestId, String reason) {
-    final index = requests.indexWhere((r) => r.id == requestId);
-    if (index != -1) {
-      final current = requests[index];
+  Future<void> rejectRequest(String requestId, String reason) async {
+    final req = requests.firstWhereOrNull((r) => r.id == requestId);
+    if (req == null) return;
 
-      final updated = current.copyWith(
-        status: 'Rejected',
-        rejectionReason: reason.isNotEmpty ? reason : selectedPredefinedReason.value,
-      );
+    final resolvedReason =
+        reason.isNotEmpty ? reason : selectedPredefinedReason.value;
 
-      requests[index] = updated;
-      if (selectedRequest.value?.id == requestId) {
-        selectedRequest.value = updated;
+    try {
+      // 1. Update Firestore driver_verifications document
+      await _firestore.collection('driver_verifications').doc(requestId).update({
+        'status': 'Rejected',
+        'reviewedAt': FieldValue.serverTimestamp(),
+        'rejectionReason': resolvedReason,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // 2. Update driver user profile in Firestore
+      try {
+        await _firestore.collection('users').doc(req.driverId).set({
+          'isDriverVerified': false,
+          'kycStatus': 'Rejected',
+          'kycRejectionReason': resolvedReason,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } catch (e) {
+        debugPrint('Note: Could not update users/${req.driverId}: $e');
       }
 
       AppSnackBar.error(
-        message: 'Driver ${current.driverName} verification rejected.',
+        message: 'Application rejected. Rejection reason saved to Firestore.',
       );
+    } catch (e) {
+      AppSnackBar.error(message: 'Failed to reject application: $e');
+    }
+  }
+
+  /// Uploads driver documents to Firebase Storage and registers the verification application in Firestore
+  Future<bool> uploadDriverApplication({
+    required String driverName,
+    required String driverEmail,
+    required String driverPhone,
+    required String driverId,
+    required String vehicleMake,
+    required String vehicleModel,
+    required String vehicleYear,
+    required String vehiclePlate,
+    required int passengerSeats,
+    required String vehicleType,
+    required String licenseNumber,
+    required String insuranceExpiryDate,
+    required Uint8List licenseFrontBytes,
+    required String licenseFrontFileName,
+    required Uint8List licenseBackBytes,
+    required String licenseBackFileName,
+    required Uint8List rcBytes,
+    required String rcFileName,
+    required Uint8List insuranceBytes,
+    required String insuranceFileName,
+    Uint8List? profileImageBytes,
+    String? profileImageFileName,
+  }) async {
+    isUploading(true);
+    final resolvedDriverId = driverId.isNotEmpty
+        ? driverId
+        : 'drv_${DateTime.now().millisecondsSinceEpoch}';
+
+    try {
+      // Step 1: Upload License Front to Firebase Storage
+      uploadProgressMessage.value = 'Uploading License Front to Firebase Storage...';
+      final licenseFrontUrl = await FirebaseStorageService.uploadDriverDocument(
+        driverId: resolvedDriverId,
+        docType: 'license_front',
+        fileBytes: licenseFrontBytes,
+        fileName: licenseFrontFileName,
+      );
+
+      // Step 2: Upload License Back to Firebase Storage
+      uploadProgressMessage.value = 'Uploading License Back to Firebase Storage...';
+      final licenseBackUrl = await FirebaseStorageService.uploadDriverDocument(
+        driverId: resolvedDriverId,
+        docType: 'license_back',
+        fileBytes: licenseBackBytes,
+        fileName: licenseBackFileName,
+      );
+
+      // Step 3: Upload Registration Certificate (RC) to Firebase Storage
+      uploadProgressMessage.value = 'Uploading Vehicle RC to Firebase Storage...';
+      final rcDocumentUrl = await FirebaseStorageService.uploadDriverDocument(
+        driverId: resolvedDriverId,
+        docType: 'vehicle_rc',
+        fileBytes: rcBytes,
+        fileName: rcFileName,
+      );
+
+      // Step 4: Upload Vehicle Insurance to Firebase Storage
+      uploadProgressMessage.value = 'Uploading Vehicle Insurance to Firebase Storage...';
+      final insuranceDocUrl = await FirebaseStorageService.uploadDriverDocument(
+        driverId: resolvedDriverId,
+        docType: 'vehicle_insurance',
+        fileBytes: insuranceBytes,
+        fileName: insuranceFileName,
+      );
+
+      // Step 5: Upload Profile Photo if provided
+      String profileImageUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop';
+      if (profileImageBytes != null && profileImageFileName != null) {
+        uploadProgressMessage.value = 'Uploading Profile Photo to Firebase Storage...';
+        profileImageUrl = await FirebaseStorageService.uploadDriverDocument(
+          driverId: resolvedDriverId,
+          docType: 'profile_image',
+          fileBytes: profileImageBytes,
+          fileName: profileImageFileName,
+        );
+      }
+
+      // Step 6: Create application record in Cloud Firestore
+      uploadProgressMessage.value = 'Saving verification record to Cloud Firestore...';
+      final docRef = _firestore.collection('driver_verifications').doc();
+      final newApp = DriverDocumentRequestModel(
+        id: docRef.id,
+        driverId: resolvedDriverId,
+        driverName: driverName,
+        driverEmail: driverEmail,
+        driverPhone: driverPhone,
+        profileImageUrl: profileImageUrl,
+        vehicleMake: vehicleMake,
+        vehicleModel: vehicleModel,
+        vehicleYear: vehicleYear,
+        vehiclePlate: vehiclePlate,
+        passengerSeats: passengerSeats,
+        vehicleType: vehicleType,
+        licenseNumber: licenseNumber,
+        licenseFrontUrl: licenseFrontUrl,
+        licenseBackUrl: licenseBackUrl,
+        rcDocumentUrl: rcDocumentUrl,
+        insuranceDocUrl: insuranceDocUrl,
+        insuranceExpiryDate: insuranceExpiryDate,
+        status: 'Pending',
+        submittedAt: DateTime.now(),
+      );
+
+      await docRef.set(newApp.toFirestore());
+
+      // Also set/update user record
+      try {
+        await _firestore.collection('users').doc(resolvedDriverId).set({
+          'name': driverName,
+          'email': driverEmail,
+          'phone': driverPhone,
+          'userType': 'driver',
+          'kycStatus': 'Pending',
+          'isDriverVerified': false,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } catch (_) {}
+
+      isUploading(false);
+      uploadProgressMessage.value = '';
+      AppSnackBar.success(
+        message: 'Driver documents successfully uploaded to Firebase Storage and submitted for verification!',
+      );
+      return true;
+    } catch (e) {
+      isUploading(false);
+      uploadProgressMessage.value = '';
+      debugPrint('Error uploading driver application: $e');
+      AppSnackBar.error(message: 'Upload failed: $e');
+      return false;
     }
   }
 
   @override
   void onClose() {
+    _requestsSubscription?.cancel();
     rejectionReasonController.dispose();
     super.onClose();
   }

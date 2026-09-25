@@ -3,9 +3,11 @@ import 'package:get/get.dart';
 import 'package:ridelink_admin/core/constants/app_colors.dart';
 import 'package:ridelink_admin/theme/app_text_style.dart';
 import 'package:ridelink_admin/views/auth_flow/auth_controller.dart';
+import 'package:ridelink_admin/views/dashboard/controllers/community_controller.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/dashboard_controller.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/driver_document_controller.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/location_controller.dart';
+import 'package:ridelink_admin/views/dashboard/controllers/support_ticket_controller.dart';
 
 class AdminSidebar extends StatelessWidget {
   const AdminSidebar({super.key});
@@ -16,8 +18,14 @@ class AdminSidebar extends StatelessWidget {
     final driverCtrl = Get.isRegistered<DriverDocumentController>()
         ? Get.find<DriverDocumentController>()
         : null;
+    final ticketCtrl = Get.isRegistered<SupportTicketController>()
+        ? Get.find<SupportTicketController>()
+        : null;
     final locCtrl = Get.isRegistered<LocationController>()
         ? Get.find<LocationController>()
+        : null;
+    final comCtrl = Get.isRegistered<CommunityController>()
+        ? Get.find<CommunityController>()
         : null;
     final authCtrl = Get.isRegistered<AuthController>()
         ? Get.find<AuthController>()
@@ -31,10 +39,12 @@ class AdminSidebar extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         width: isCollapsed ? 76 : 260,
         decoration: BoxDecoration(
-          color: const Color(0xFF0F172A), // Premium Dark Slate background for sidebar
+          color: const Color(
+            0xFF0F172A,
+          ), // Premium Dark Slate background for sidebar
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(4, 0),
             ),
@@ -129,10 +139,12 @@ class AdminSidebar extends StatelessWidget {
                   const SizedBox(height: 6),
                   _buildMenuItem(
                     context: context,
-                    icon: Icons.location_on_rounded,
-                    label: 'Locations',
-                    badgeText: locCtrl != null ? '${locCtrl.totalCount}' : null,
-                    badgeColor: const Color(0xFF3B82F6),
+                    icon: Icons.assignment_ind_rounded,
+                    label: 'Driver Verification',
+                    badgeText: driverCtrl != null && driverCtrl.pendingCount > 0
+                        ? '${driverCtrl.pendingCount}'
+                        : null,
+                    badgeColor: const Color(0xFFF97316),
                     isSelected: selectedIdx == 1,
                     isCollapsed: isCollapsed,
                     onTap: () => dashboardCtrl.changeTab(1),
@@ -140,12 +152,12 @@ class AdminSidebar extends StatelessWidget {
                   const SizedBox(height: 6),
                   _buildMenuItem(
                     context: context,
-                    icon: Icons.assignment_ind_rounded,
-                    label: 'Driver Verification',
-                    badgeText: driverCtrl != null && driverCtrl.pendingCount > 0
-                        ? '${driverCtrl.pendingCount}'
+                    icon: Icons.support_agent_rounded,
+                    label: 'Support Tickets',
+                    badgeText: ticketCtrl != null && ticketCtrl.unresolvedCount > 0
+                        ? '${ticketCtrl.unresolvedCount}'
                         : null,
-                    badgeColor: const Color(0xFFF97316),
+                    badgeColor: const Color(0xFFEF4444),
                     isSelected: selectedIdx == 2,
                     isCollapsed: isCollapsed,
                     onTap: () => dashboardCtrl.changeTab(2),
@@ -153,11 +165,33 @@ class AdminSidebar extends StatelessWidget {
                   const SizedBox(height: 6),
                   _buildMenuItem(
                     context: context,
-                    icon: Icons.settings_rounded,
-                    label: 'Settings',
+                    icon: Icons.location_on_rounded,
+                    label: 'Allowed Locations',
+                    badgeText: locCtrl != null ? '${locCtrl.totalCount}' : null,
+                    badgeColor: const Color(0xFF3B82F6),
                     isSelected: selectedIdx == 3,
                     isCollapsed: isCollapsed,
                     onTap: () => dashboardCtrl.changeTab(3),
+                  ),
+                  const SizedBox(height: 6),
+                  _buildMenuItem(
+                    context: context,
+                    icon: Icons.groups_rounded,
+                    label: 'Communities',
+                    badgeText: comCtrl != null ? '${comCtrl.totalCount}' : null,
+                    badgeColor: const Color(0xFF10B981),
+                    isSelected: selectedIdx == 4,
+                    isCollapsed: isCollapsed,
+                    onTap: () => dashboardCtrl.changeTab(4),
+                  ),
+                  const SizedBox(height: 6),
+                  _buildMenuItem(
+                    context: context,
+                    icon: Icons.settings_rounded,
+                    label: 'Settings',
+                    isSelected: selectedIdx == 5,
+                    isCollapsed: isCollapsed,
+                    onTap: () => dashboardCtrl.changeTab(5),
                   ),
                 ],
               ),
@@ -178,12 +212,12 @@ class AdminSidebar extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             radius: 18,
                             backgroundColor: AppColors.primaryColor,
                             child: Text(
-                              'AD',
-                              style: TextStyle(
+                              authCtrl?.userInitials ?? 'AD',
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
@@ -196,18 +230,20 @@ class AdminSidebar extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'System Admin',
+                                  authCtrl?.currentUserName ?? 'Admin',
                                   style: AppTextStyle.text14Medium.copyWith(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w600,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 Text(
-                                  'admin@ridelink.com',
-                                  style: AppTextStyle.text12MediumOrSmall.copyWith(
-                                    color: const Color(0xFF94A3B8),
-                                    fontSize: 11,
-                                  ),
+                                  authCtrl?.currentUserEmail ?? 'admin@ridelink.com',
+                                  style: AppTextStyle.text12MediumOrSmall
+                                      .copyWith(
+                                        color: const Color(0xFF94A3B8),
+                                        fontSize: 11,
+                                      ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ],
@@ -230,6 +266,24 @@ class AdminSidebar extends StatelessWidget {
                           ),
                         ],
                       ),
+                    )
+                  else
+                    Tooltip(
+                      message: 'Logout (${authCtrl?.currentUserEmail ?? 'Admin'})',
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.logout_rounded,
+                          color: Color(0xFFEF4444),
+                          size: 22,
+                        ),
+                        onPressed: () {
+                          if (authCtrl != null) {
+                            authCtrl.onLogout();
+                          } else {
+                            Get.find<AuthController>().onLogout();
+                          }
+                        },
+                      ),
                     ),
                   const SizedBox(height: 8),
                   InkWell(
@@ -239,7 +293,7 @@ class AdminSidebar extends StatelessWidget {
                       height: 40,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B).withOpacity(0.5),
+                        color: const Color(0xFF1E293B).withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
@@ -296,20 +350,17 @@ class AdminSidebar extends StatelessWidget {
             height: 48,
             padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 0 : 14),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? const Color(0xFF2563EB)
-                  : Colors.transparent,
+              color: isSelected ? const Color(0xFF2563EB) : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
-              mainAxisAlignment:
-                  isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+              mainAxisAlignment: isCollapsed
+                  ? MainAxisAlignment.center
+                  : MainAxisAlignment.start,
               children: [
                 Icon(
                   icon,
-                  color: isSelected
-                      ? Colors.white
-                      : const Color(0xFF94A3B8),
+                  color: isSelected ? Colors.white : const Color(0xFF94A3B8),
                   size: 22,
                 ),
                 if (!isCollapsed) ...[
@@ -321,13 +372,18 @@ class AdminSidebar extends StatelessWidget {
                         color: isSelected
                             ? Colors.white
                             : const Color(0xFFCBD5E1),
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
                       ),
                     ),
                   ),
                   if (badgeText != null)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: badgeColor ?? AppColors.primaryColor,
                         borderRadius: BorderRadius.circular(12),

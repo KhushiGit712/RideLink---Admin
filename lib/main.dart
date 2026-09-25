@@ -1,6 +1,8 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:ridelink_admin/firebase_options.dart';
 import 'package:ridelink_admin/routes/routes.dart';
 
 import 'core/utils/stretch_scroll_behavior.dart';
@@ -10,6 +12,7 @@ import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Utils.darkStatusBar();
   await Utils.screenPortrait();
   Utils.hideKeyboard();
