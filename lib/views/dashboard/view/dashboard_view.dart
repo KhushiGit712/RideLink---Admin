@@ -4,7 +4,6 @@ import 'package:ridelink_admin/views/dashboard/controllers/dashboard_controller.
 import 'package:ridelink_admin/views/dashboard/view/admin_settings_view.dart';
 import 'package:ridelink_admin/views/dashboard/view/community_management_view.dart';
 import 'package:ridelink_admin/views/dashboard/view/driver_document_review_view.dart';
-import 'package:ridelink_admin/views/dashboard/view/location_management_view.dart';
 import 'package:ridelink_admin/views/dashboard/view/overview_tab_view.dart';
 import 'package:ridelink_admin/views/dashboard/view/support_tickets_view.dart';
 import 'package:ridelink_admin/views/dashboard/widgets/admin_header.dart';
@@ -41,10 +40,8 @@ class DashboardView extends GetView<DashboardController> {
                       case 2:
                         return const SupportTicketsView();
                       case 3:
-                        return const LocationManagementView();
-                      case 4:
                         return const CommunityManagementView();
-                      case 5:
+                      case 4:
                         return const AdminSettingsView();
                       default:
                         return const OverviewTabView();

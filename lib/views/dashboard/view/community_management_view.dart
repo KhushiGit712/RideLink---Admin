@@ -6,7 +6,6 @@ import 'package:ridelink_admin/theme/app_text_style.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/community_controller.dart';
 import 'package:ridelink_admin/views/dashboard/widgets/add_edit_community_dialog.dart';
 import 'package:ridelink_admin/views/dashboard/widgets/community_details_modal.dart';
-import 'package:ridelink_admin/widgets/app_button.dart';
 
 class CommunityManagementView extends GetView<CommunityController> {
   const CommunityManagementView({super.key});
@@ -880,27 +879,63 @@ class CommunityManagementView extends GetView<CommunityController> {
                                   ),
                                 ],
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEFF6FF),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                      color: const Color(0xFFBFDBFE)),
-                                ),
-                                child: Text(
-                                  com.isActive
-                                      ? 'Active Corridor'
-                                      : 'Inactive Corridor',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: com.isActive
-                                        ? const Color(0xFF1D4ED8)
-                                        : const Color(0xFF64748B),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 7, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: com.fixedLocationType == 'dropoff'
+                                          ? const Color(0xFFFEE2E2)
+                                          : (com.fixedLocationType == 'pickup'
+                                              ? const Color(0xFFDCFCE7)
+                                              : const Color(0xFFF1F5F9)),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: com.fixedLocationType == 'dropoff'
+                                            ? const Color(0xFFFECACA)
+                                            : (com.fixedLocationType == 'pickup'
+                                                ? const Color(0xFFBBF7D0)
+                                                : const Color(0xFFE2E8F0)),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      com.fixedLocationTitle,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: com.fixedLocationType == 'dropoff'
+                                            ? const Color(0xFFDC2626)
+                                            : (com.fixedLocationType == 'pickup'
+                                                ? const Color(0xFF16A34A)
+                                                : const Color(0xFF475569)),
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEFF6FF),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                          color: const Color(0xFFBFDBFE)),
+                                    ),
+                                    child: Text(
+                                      com.isActive
+                                          ? 'Active Corridor'
+                                          : 'Inactive Corridor',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: com.isActive
+                                            ? const Color(0xFF1D4ED8)
+                                            : const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -933,117 +968,21 @@ class CommunityManagementView extends GetView<CommunityController> {
                               Expanded(
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.event_seat_rounded,
+                                    const Icon(Icons.repeat_rounded,
                                         size: 14, color: Color(0xFF2563EB)),
                                     const SizedBox(width: 6),
-                                    Text(
-                                      '${com.nextRideSeatsOpen} Seats Open',
-                                      style: const TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFF1D4ED8)),
+                                    Expanded(
+                                      child: Text(
+                                        com.recurringOption,
+                                        style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF1D4ED8)),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Member Distribution Meter
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'NETWORK CAPACITY',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF475569),
-                                  letterSpacing: 0.8,
-                                ),
-                              ),
-                              Text(
-                                '${com.totalMembersCount} Members',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          // Ratio Progress Bar
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: (com.totalMembersCount > 0)
-                                  ? (com.driversCount / com.totalMembersCount)
-                                  : 0.5,
-                              backgroundColor: const Color(0xFFFAF5FF),
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Color(0xFFEA580C)),
-                              minHeight: 6,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFEA580C),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '${com.driversCount} Drivers',
-                                    style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFFC2410C)),
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFF9333EA),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '${com.passengersCount} Passengers',
-                                    style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF7E22CE)),
-                                  ),
-                                ],
                               ),
                             ],
                           ),
@@ -1424,6 +1363,41 @@ class CommunityManagementView extends GetView<CommunityController> {
                 ),
               ),
             ],
+            if (com.fixedLocationType == 'dropoff') ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  '🎯 Drop Fixed',
+                  style: TextStyle(
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFDC2626),
+                  ),
+                ),
+              ),
+            ] else if (com.fixedLocationType == 'pickup') ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  '🛫 Pick Fixed',
+                  style: TextStyle(
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF16A34A),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -1467,14 +1441,39 @@ class CommunityManagementView extends GetView<CommunityController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'ORIGIN / PICK-UP',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF16A34A),
-                        letterSpacing: 0.6,
-                      ),
+                    Row(
+                      children: [
+                        const Text(
+                          'ORIGIN / PICK-UP',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF16A34A),
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: com.isPickupFixed
+                                ? const Color(0xFFDCFCE7)
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            com.isPickupFixed ? '📌 FIXED' : '📍 FLEXIBLE',
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                              color: com.isPickupFixed
+                                  ? const Color(0xFF15803D)
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 1),
                     Text(
@@ -1520,14 +1519,39 @@ class CommunityManagementView extends GetView<CommunityController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'DESTINATION / DROP-OFF',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFDC2626),
-                        letterSpacing: 0.6,
-                      ),
+                    Row(
+                      children: [
+                        const Text(
+                          'DESTINATION / DROP-OFF',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFDC2626),
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: com.isDropOffFixed
+                                ? const Color(0xFFFEE2E2)
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            com.isDropOffFixed ? '📌 FIXED' : '📍 FLEXIBLE',
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                              color: com.isDropOffFixed
+                                  ? const Color(0xFFB91C1C)
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 1),
                     Text(

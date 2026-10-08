@@ -28,14 +28,6 @@ class SupportTicketsView extends GetView<SupportTicketController> {
                 ),
                 const SizedBox(width: 16),
                 _buildMetricTile(
-                  title: 'In Progress',
-                  value: '${controller.inProgressCount}',
-                  icon: Icons.sync_rounded,
-                  color: const Color(0xFF2563EB),
-                  bgColor: const Color(0xFFEFF6FF),
-                ),
-                const SizedBox(width: 16),
-                _buildMetricTile(
                   title: 'Resolved',
                   value: '${controller.resolvedCount}',
                   icon: Icons.check_circle_outline_rounded,
@@ -99,10 +91,10 @@ class SupportTicketsView extends GetView<SupportTicketController> {
                 ),
                 const SizedBox(width: 12),
 
-                // Filter by Status: All, Open, In Progress, Resolved
+                // Filter by Status: All, Open, Resolved
                 Obx(
                   () => Row(
-                    children: ['All', 'Open', 'In Progress', 'Resolved'].map((
+                    children: ['All', 'Open', 'Resolved'].map((
                       status,
                     ) {
                       final isSelected =
@@ -492,7 +484,7 @@ class SupportTicketsView extends GetView<SupportTicketController> {
                         const SizedBox(width: 14),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: selectedRole,
+                            initialValue: selectedRole,
                             decoration: const InputDecoration(
                               labelText: 'User Role *',
                               border: OutlineInputBorder(),
@@ -554,7 +546,7 @@ class SupportTicketsView extends GetView<SupportTicketController> {
                       children: [
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: selectedCat,
+                            initialValue: selectedCat,
                             decoration: const InputDecoration(
                               labelText: 'Category *',
                               border: OutlineInputBorder(),

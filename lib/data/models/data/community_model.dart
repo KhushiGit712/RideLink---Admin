@@ -91,14 +91,22 @@ class CommunityModel {
   final String id;
   final String name;
   final String routeSummary;
+  final String? explicitPickupLocation;
+  final String? explicitDropOffLocation;
   final String commonTime; // e.g. "7:30 AM - 9:00 AM"
   final String description;
-  final String icon; // 'school', 'business', 'hospital', 'car'
+  final String icon; // 'school', 'business', 'hospital', 'home', 'stadium'
   final String category; // 'university', 'corporate', 'healthcare', 'metro', 'corridor'
+  final String fixedLocationType; // 'dropoff', 'pickup', 'both', 'none'
+  final bool isFixedPickup;
+  final bool isFixedDropOff;
+  final String? fixedLocation;
   final int passengersCount;
   final int driversCount;
   final String nextRideTime;
   final int nextRideSeatsOpen;
+  final String recurringOption; // 'Daily', 'Weekdays', 'Weekends', 'Weekly', 'Custom', 'One-time'
+  final List<String> recurringDays;
   final List<String> memberIds;
   final List<String> passengerMemberIds;
   final List<String> driverMemberIds;
@@ -111,14 +119,22 @@ class CommunityModel {
     required this.id,
     required this.name,
     required this.routeSummary,
+    this.explicitPickupLocation,
+    this.explicitDropOffLocation,
     this.commonTime = '7:30 AM - 9:00 AM',
     this.description = '',
     this.icon = 'school',
     this.category = 'university',
+    this.fixedLocationType = 'both',
+    bool? isFixedPickup,
+    bool? isFixedDropOff,
+    this.fixedLocation,
     this.passengersCount = 0,
     this.driversCount = 0,
     this.nextRideTime = 'Tomorrow 8:00 AM',
-    this.nextRideSeatsOpen = 3,
+    this.nextRideSeatsOpen = 0,
+    this.recurringOption = 'Weekdays',
+    List<String>? recurringDays,
     List<String>? memberIds,
     List<String>? passengerMemberIds,
     List<String>? driverMemberIds,
@@ -126,7 +142,12 @@ class CommunityModel {
     this.isActive = true,
     DateTime? createdAt,
     this.updatedAt,
-  })  : memberIds = memberIds ?? [],
+  })  : isFixedPickup = isFixedPickup ??
+            (fixedLocationType == 'pickup' || fixedLocationType == 'both'),
+        isFixedDropOff = isFixedDropOff ??
+            (fixedLocationType == 'dropoff' || fixedLocationType == 'both'),
+        recurringDays = recurringDays ?? const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+        memberIds = memberIds ?? [],
         passengerMemberIds = passengerMemberIds ?? [],
         driverMemberIds = driverMemberIds ?? [],
         createdAt = createdAt ?? DateTime.now();
@@ -135,14 +156,22 @@ class CommunityModel {
     String? id,
     String? name,
     String? routeSummary,
+    String? explicitPickupLocation,
+    String? explicitDropOffLocation,
     String? commonTime,
     String? description,
     String? icon,
     String? category,
+    String? fixedLocationType,
+    bool? isFixedPickup,
+    bool? isFixedDropOff,
+    String? fixedLocation,
     int? passengersCount,
     int? driversCount,
     String? nextRideTime,
     int? nextRideSeatsOpen,
+    String? recurringOption,
+    List<String>? recurringDays,
     List<String>? memberIds,
     List<String>? passengerMemberIds,
     List<String>? driverMemberIds,
@@ -155,14 +184,24 @@ class CommunityModel {
       id: id ?? this.id,
       name: name ?? this.name,
       routeSummary: routeSummary ?? this.routeSummary,
+      explicitPickupLocation:
+          explicitPickupLocation ?? this.explicitPickupLocation,
+      explicitDropOffLocation:
+          explicitDropOffLocation ?? this.explicitDropOffLocation,
       commonTime: commonTime ?? this.commonTime,
       description: description ?? this.description,
       icon: icon ?? this.icon,
       category: category ?? this.category,
+      fixedLocationType: fixedLocationType ?? this.fixedLocationType,
+      isFixedPickup: isFixedPickup ?? this.isFixedPickup,
+      isFixedDropOff: isFixedDropOff ?? this.isFixedDropOff,
+      fixedLocation: fixedLocation ?? this.fixedLocation,
       passengersCount: passengersCount ?? this.passengersCount,
       driversCount: driversCount ?? this.driversCount,
       nextRideTime: nextRideTime ?? this.nextRideTime,
       nextRideSeatsOpen: nextRideSeatsOpen ?? this.nextRideSeatsOpen,
+      recurringOption: recurringOption ?? this.recurringOption,
+      recurringDays: recurringDays ?? this.recurringDays,
       memberIds: memberIds ?? this.memberIds,
       passengerMemberIds: passengerMemberIds ?? this.passengerMemberIds,
       driverMemberIds: driverMemberIds ?? this.driverMemberIds,
@@ -174,6 +213,10 @@ class CommunityModel {
   }
 
   String get pickupLocation {
+    if (explicitPickupLocation != null &&
+        explicitPickupLocation!.trim().isNotEmpty) {
+      return explicitPickupLocation!.trim();
+    }
     final s = routeSummary.trim();
     if (s.contains('→')) return s.split('→').first.trim();
     if (s.contains('->')) return s.split('->').first.trim();
@@ -185,6 +228,10 @@ class CommunityModel {
   }
 
   String get dropOffLocation {
+    if (explicitDropOffLocation != null &&
+        explicitDropOffLocation!.trim().isNotEmpty) {
+      return explicitDropOffLocation!.trim();
+    }
     final s = routeSummary.trim();
     if (s.contains('→')) return s.split('→').last.trim();
     if (s.contains('->')) return s.split('->').last.trim();
@@ -255,6 +302,13 @@ class CommunityModel {
       'routeSummary': routeSummary,
       'pickupLocation': pickupLocation,
       'dropOffLocation': dropOffLocation,
+      'fixedLocationType': fixedLocationType,
+      'isFixedPickup': isFixedPickup,
+      'isFixedDropOff': isFixedDropOff,
+      'fixedLocation': fixedLocation ??
+          (fixedLocationType == 'dropoff'
+              ? dropOffLocation
+              : (fixedLocationType == 'pickup' ? pickupLocation : routeSummary)),
       'commonTime': commonTime,
       'description': description,
       'icon': icon,
@@ -263,6 +317,8 @@ class CommunityModel {
       'driversCount': driversCount,
       'nextRideTime': nextRideTime,
       'nextRideSeatsOpen': nextRideSeatsOpen,
+      'recurringOption': recurringOption,
+      'recurringDays': recurringDays,
       'memberIds': memberIds,
       'passengerMemberIds': passengerMemberIds,
       'driverMemberIds': driverMemberIds,
@@ -282,6 +338,10 @@ class CommunityModel {
       'routeSummary': routeSummary,
       'pickupLocation': pickupLocation,
       'dropOffLocation': dropOffLocation,
+      'fixedLocationType': fixedLocationType,
+      'isFixedPickup': isFixedPickup,
+      'isFixedDropOff': isFixedDropOff,
+      'fixedLocation': fixedLocation,
       'commonTime': commonTime,
       'description': description,
       'icon': icon,
@@ -290,6 +350,8 @@ class CommunityModel {
       'driversCount': driversCount,
       'nextRideTime': nextRideTime,
       'nextRideSeatsOpen': nextRideSeatsOpen,
+      'recurringOption': recurringOption,
+      'recurringDays': recurringDays,
       'memberIds': memberIds,
       'passengerMemberIds': passengerMemberIds,
       'driverMemberIds': driverMemberIds,
@@ -323,21 +385,78 @@ class CommunityModel {
     final allMemberIds = List<String>.from(data['memberIds'] ?? []);
     final parsedRoute = extractRouteSummary(data);
 
+    final explicitP = (data['pickupLocation'] ??
+            data['pickup_location'] ??
+            data['pickup'] ??
+            '')
+        .toString()
+        .trim();
+    final explicitD = (data['dropOffLocation'] ??
+            data['dropoffLocation'] ??
+            data['drop_off_location'] ??
+            data['dropoff'] ??
+            '')
+        .toString()
+        .trim();
+    final recOpt = (data['recurringOption'] ??
+            data['recurring_option'] ??
+            data['recurring'] ??
+            'Weekdays')
+        .toString();
+    final recDays = data['recurringDays'] is List
+        ? List<String>.from(data['recurringDays'])
+        : const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
+    final rawFixedType = data['fixedLocationType'] ?? data['fixed_location_type'];
+    final String fixedType;
+    if (rawFixedType != null && rawFixedType.toString().trim().isNotEmpty) {
+      fixedType = rawFixedType.toString().trim();
+    } else if (data['isFixedDropOff'] == true && data['isFixedPickup'] == false) {
+      fixedType = 'dropoff';
+    } else if (data['isFixedPickup'] == true && data['isFixedDropOff'] == false) {
+      fixedType = 'pickup';
+    } else if (data['isFixedPickup'] == false && data['isFixedDropOff'] == false) {
+      fixedType = 'none';
+    } else {
+      fixedType = 'both';
+    }
+
+    final bool isFixedP = data['isFixedPickup'] == true ||
+        fixedType == 'pickup' ||
+        fixedType == 'both';
+    final bool isFixedD = data['isFixedDropOff'] == true ||
+        fixedType == 'dropoff' ||
+        fixedType == 'both';
+    final String? fixedLoc = data['fixedLocation']?.toString() ??
+        (fixedType == 'dropoff'
+            ? (explicitD.isNotEmpty ? explicitD : null)
+            : (fixedType == 'pickup'
+                ? (explicitP.isNotEmpty ? explicitP : null)
+                : null));
+
     return CommunityModel(
       id: doc.id,
       name: data['name'] ?? '',
       routeSummary: parsedRoute,
+      explicitPickupLocation: explicitP.isNotEmpty ? explicitP : null,
+      explicitDropOffLocation: explicitD.isNotEmpty ? explicitD : null,
+      fixedLocationType: fixedType,
+      isFixedPickup: isFixedP,
+      isFixedDropOff: isFixedD,
+      fixedLocation: fixedLoc,
       commonTime: data['commonTime'] ?? '7:30 AM - 9:00 AM',
       description: data['description'] ?? '',
       icon: data['icon'] ?? 'school',
-      category: data['category'] ?? 'university',
+      category: data['category'] ?? 'corridor',
       passengersCount:
           (data['passengersCount'] as num?)?.toInt() ?? pMemberIds.length,
       driversCount:
           (data['driversCount'] as num?)?.toInt() ?? dMemberIds.length,
       nextRideTime: data['nextRideTime'] ?? 'Tomorrow 8:00 AM',
       nextRideSeatsOpen:
-          (data['nextRideSeatsOpen'] as num?)?.toInt() ?? 3,
+          (data['nextRideSeatsOpen'] as num?)?.toInt() ?? 0,
+      recurringOption: recOpt,
+      recurringDays: recDays,
       memberIds: allMemberIds.isNotEmpty
           ? allMemberIds
           : {...pMemberIds, ...dMemberIds}.toList(),
@@ -371,21 +490,71 @@ class CommunityModel {
     final allMemberIds = List<String>.from(json['memberIds'] ?? []);
     final parsedRoute = extractRouteSummary(json);
 
+    final explicitP = (json['pickupLocation'] ??
+            json['pickup_location'] ??
+            '')
+        .toString()
+        .trim();
+    final explicitD = (json['dropOffLocation'] ??
+            json['dropoffLocation'] ??
+            '')
+        .toString()
+        .trim();
+    final recOpt = (json['recurringOption'] ?? 'Weekdays').toString();
+    final recDays = json['recurringDays'] is List
+        ? List<String>.from(json['recurringDays'])
+        : const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
+    final rawFixedType = json['fixedLocationType'] ?? json['fixed_location_type'];
+    final String fixedType;
+    if (rawFixedType != null && rawFixedType.toString().trim().isNotEmpty) {
+      fixedType = rawFixedType.toString().trim();
+    } else if (json['isFixedDropOff'] == true && json['isFixedPickup'] == false) {
+      fixedType = 'dropoff';
+    } else if (json['isFixedPickup'] == true && json['isFixedDropOff'] == false) {
+      fixedType = 'pickup';
+    } else if (json['isFixedPickup'] == false && json['isFixedDropOff'] == false) {
+      fixedType = 'none';
+    } else {
+      fixedType = 'both';
+    }
+
+    final bool isFixedP = json['isFixedPickup'] == true ||
+        fixedType == 'pickup' ||
+        fixedType == 'both';
+    final bool isFixedD = json['isFixedDropOff'] == true ||
+        fixedType == 'dropoff' ||
+        fixedType == 'both';
+    final String? fixedLoc = json['fixedLocation']?.toString() ??
+        (fixedType == 'dropoff'
+            ? (explicitD.isNotEmpty ? explicitD : null)
+            : (fixedType == 'pickup'
+                ? (explicitP.isNotEmpty ? explicitP : null)
+                : null));
+
     return CommunityModel(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       routeSummary: parsedRoute,
+      explicitPickupLocation: explicitP.isNotEmpty ? explicitP : null,
+      explicitDropOffLocation: explicitD.isNotEmpty ? explicitD : null,
+      fixedLocationType: fixedType,
+      isFixedPickup: isFixedP,
+      isFixedDropOff: isFixedD,
+      fixedLocation: fixedLoc,
       commonTime: json['commonTime'] ?? '7:30 AM - 9:00 AM',
       description: json['description'] ?? '',
       icon: json['icon'] ?? 'school',
-      category: json['category'] ?? 'university',
+      category: json['category'] ?? 'corridor',
       passengersCount:
           (json['passengersCount'] as num?)?.toInt() ?? pMemberIds.length,
       driversCount:
           (json['driversCount'] as num?)?.toInt() ?? dMemberIds.length,
       nextRideTime: json['nextRideTime'] ?? 'Tomorrow 8:00 AM',
       nextRideSeatsOpen:
-          (json['nextRideSeatsOpen'] as num?)?.toInt() ?? 3,
+          (json['nextRideSeatsOpen'] as num?)?.toInt() ?? 0,
+      recurringOption: recOpt,
+      recurringDays: recDays,
       memberIds: allMemberIds.isNotEmpty
           ? allMemberIds
           : {...pMemberIds, ...dMemberIds}.toList(),
@@ -396,6 +565,19 @@ class CommunityModel {
       createdAt: parsedCreatedAt,
       updatedAt: parsedUpdatedAt,
     );
+  }
+
+  bool get isPickupFixed =>
+      fixedLocationType == 'pickup' || fixedLocationType == 'both' || isFixedPickup;
+
+  bool get isDropOffFixed =>
+      fixedLocationType == 'dropoff' || fixedLocationType == 'both' || isFixedDropOff;
+
+  String get fixedLocationTitle {
+    if (fixedLocationType == 'dropoff') return 'Fixed Drop-off';
+    if (fixedLocationType == 'pickup') return 'Fixed Pick-up';
+    if (fixedLocationType == 'both') return 'Both Fixed';
+    return 'Flexible Corridor';
   }
 
   int get totalMembersCount =>

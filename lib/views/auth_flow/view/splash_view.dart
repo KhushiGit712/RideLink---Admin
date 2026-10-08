@@ -28,7 +28,7 @@ class SplashView extends GetView<AuthController> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SvgPicture.asset(AppAssets.appLogo, height: 140, width: 140),
+            Image.asset(AppAssets.appLogo, height: 140, width: 140),
             const SizedBox(height: 16),
             Text(
               'RideLink',

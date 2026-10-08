@@ -4,7 +4,6 @@ import 'package:ridelink_admin/core/constants/app_colors.dart';
 import 'package:ridelink_admin/theme/app_text_style.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/community_controller.dart';
 import 'package:ridelink_admin/data/models/data/community_model.dart';
-import 'package:ridelink_admin/widgets/app_button.dart';
 
 class CommunityDetailsModal extends StatelessWidget {
   const CommunityDetailsModal({super.key});

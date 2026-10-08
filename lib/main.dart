@@ -8,7 +8,6 @@ import 'package:ridelink_admin/routes/routes.dart';
 import 'core/utils/stretch_scroll_behavior.dart';
 import 'core/utils/utils.dart';
 import 'routes/routes_name.dart';
-import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +27,6 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Ride Link',
-      theme: AppTheme.lightTheme,
       themeMode: ThemeMode.light,
       getPages: pages,
       initialRoute: AppRoutes.splashView,

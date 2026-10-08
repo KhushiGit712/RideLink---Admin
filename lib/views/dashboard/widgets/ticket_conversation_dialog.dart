@@ -100,14 +100,11 @@ class TicketConversationDialog extends StatelessWidget {
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
-                          value:
-                              ['open', 'in_progress', 'resolved'].contains(
-                                ticket.status.toLowerCase().replaceAll(
-                                  ' ',
-                                  '_',
-                                ),
-                              )
-                              ? ticket.status.toLowerCase().replaceAll(' ', '_')
+                          value: ticket.status
+                                      .toLowerCase()
+                                      .replaceAll(' ', '_') ==
+                                  'resolved'
+                              ? 'resolved'
                               : 'open',
                           items: const [
                             DropdownMenuItem(
@@ -121,19 +118,9 @@ class TicketConversationDialog extends StatelessWidget {
                               ),
                             ),
                             DropdownMenuItem(
-                              value: 'in_progress',
-                              child: Text(
-                                'Status: In Progress',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            DropdownMenuItem(
                               value: 'resolved',
                               child: Text(
-                                'Status: Mark Resolved',
+                                'Status: Resolved',
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -236,7 +223,8 @@ class TicketConversationDialog extends StatelessWidget {
                                 : 'None (General query)',
                           ),
 
-                          if (ticket.attachmentUrl != null) ...[
+                          if (ticket.attachmentUrl != null &&
+                              ticket.attachmentUrl!.trim().isNotEmpty) ...[
                             const SizedBox(height: 16),
                             const Divider(height: 1, color: Color(0xFFE2E8F0)),
                             const SizedBox(height: 16),
@@ -276,7 +264,7 @@ class TicketConversationDialog extends StatelessWidget {
                                         width: double.infinity,
                                         height: double.infinity,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) =>
+                                        errorBuilder: (context, error, stackTrace) =>
                                             const Center(
                                               child: Icon(
                                                 Icons.broken_image_rounded,
@@ -293,8 +281,8 @@ class TicketConversationDialog extends StatelessWidget {
                                             vertical: 4,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Colors.black.withOpacity(
-                                              0.7,
+                                            color: Colors.black.withValues(
+                                              alpha: 0.7,
                                             ),
                                             borderRadius: BorderRadius.circular(
                                               6,

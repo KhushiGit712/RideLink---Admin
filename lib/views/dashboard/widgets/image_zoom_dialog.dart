@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ridelink_admin/theme/app_text_style.dart';
+import 'package:ridelink_admin/views/dashboard/widgets/smart_doc_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ImageZoomDialog extends StatefulWidget {
@@ -206,39 +207,7 @@ class _ImageZoomDialogState extends State<ImageZoomDialog> {
                     transformationController: _transformationController,
                     minScale: 0.8,
                     maxScale: 5.0,
-                    child: Image.network(
-                      widget.imageUrl,
-                      fit: BoxFit.contain,
-                      loadingBuilder: (context, child, progress) {
-                        if (progress == null) return child;
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF38BDF8),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.broken_image_rounded,
-                                color: Color(0xFFEF4444),
-                                size: 54,
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Unable to load document image preview',
-                                style: AppTextStyle.text14Medium.copyWith(
-                                  color: const Color(0xFF94A3B8),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                    child: _buildZoomImage(widget.imageUrl),
                   ),
                 ),
               ),
@@ -246,6 +215,17 @@ class _ImageZoomDialogState extends State<ImageZoomDialog> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildZoomImage(String imageUrl) {
+    return SmartDocImage(
+      imageUrl: imageUrl,
+      label: widget.title,
+      fit: BoxFit.contain,
+      width: double.infinity,
+      height: double.infinity,
+      showOpenButton: true,
     );
   }
 }

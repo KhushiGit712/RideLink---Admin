@@ -6,7 +6,6 @@ import 'package:ridelink_admin/views/auth_flow/auth_controller.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/community_controller.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/dashboard_controller.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/driver_document_controller.dart';
-import 'package:ridelink_admin/views/dashboard/controllers/location_controller.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/support_ticket_controller.dart';
 
 class AdminSidebar extends StatelessWidget {
@@ -20,9 +19,6 @@ class AdminSidebar extends StatelessWidget {
         : null;
     final ticketCtrl = Get.isRegistered<SupportTicketController>()
         ? Get.find<SupportTicketController>()
-        : null;
-    final locCtrl = Get.isRegistered<LocationController>()
-        ? Get.find<LocationController>()
         : null;
     final comCtrl = Get.isRegistered<CommunityController>()
         ? Get.find<CommunityController>()
@@ -165,10 +161,10 @@ class AdminSidebar extends StatelessWidget {
                   const SizedBox(height: 6),
                   _buildMenuItem(
                     context: context,
-                    icon: Icons.location_on_rounded,
-                    label: 'Allowed Locations',
-                    badgeText: locCtrl != null ? '${locCtrl.totalCount}' : null,
-                    badgeColor: const Color(0xFF3B82F6),
+                    icon: Icons.groups_rounded,
+                    label: 'Communities',
+                    badgeText: comCtrl != null ? '${comCtrl.totalCount}' : null,
+                    badgeColor: const Color(0xFF10B981),
                     isSelected: selectedIdx == 3,
                     isCollapsed: isCollapsed,
                     onTap: () => dashboardCtrl.changeTab(3),
@@ -176,22 +172,11 @@ class AdminSidebar extends StatelessWidget {
                   const SizedBox(height: 6),
                   _buildMenuItem(
                     context: context,
-                    icon: Icons.groups_rounded,
-                    label: 'Communities',
-                    badgeText: comCtrl != null ? '${comCtrl.totalCount}' : null,
-                    badgeColor: const Color(0xFF10B981),
+                    icon: Icons.settings_rounded,
+                    label: 'Settings',
                     isSelected: selectedIdx == 4,
                     isCollapsed: isCollapsed,
                     onTap: () => dashboardCtrl.changeTab(4),
-                  ),
-                  const SizedBox(height: 6),
-                  _buildMenuItem(
-                    context: context,
-                    icon: Icons.settings_rounded,
-                    label: 'Settings',
-                    isSelected: selectedIdx == 5,
-                    isCollapsed: isCollapsed,
-                    onTap: () => dashboardCtrl.changeTab(5),
                   ),
                 ],
               ),

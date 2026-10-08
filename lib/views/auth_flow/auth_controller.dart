@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ridelink_admin/core/utils/app_snack_bar.dart';
@@ -21,6 +22,12 @@ class AuthController extends GetxController with ValidationMixin {
   @override
   void onInit() {
     super.onInit();
+
+    if (kDebugMode) {
+      emailController.text = 'admin@ridelink.com';
+      passwordController.text = 'Ab@12345';
+    }
+
     currentUser.value = _auth.currentUser;
     isLoggedIn.value = _auth.currentUser != null;
 
@@ -35,7 +42,9 @@ class AuthController extends GetxController with ValidationMixin {
   }
 
   String get currentUserEmail =>
-      currentUser.value?.email ?? _auth.currentUser?.email ?? 'admin@ridelink.com';
+      currentUser.value?.email ??
+      _auth.currentUser?.email ??
+      'admin@ridelink.com';
 
   String get currentUserName {
     final user = currentUser.value ?? _auth.currentUser;

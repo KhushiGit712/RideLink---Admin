@@ -34,6 +34,9 @@ class CommunityController extends GetxController {
   final TextEditingController routeSummaryController = TextEditingController();
   final TextEditingController pickupLocationController = TextEditingController();
   final TextEditingController dropOffLocationController = TextEditingController();
+  final RxString selectedPickupPreview = ''.obs;
+  final RxString selectedDropPreview = ''.obs;
+  final RxString selectedFixedLocationType = 'both'.obs; // 'dropoff', 'pickup', 'both', 'none'
   final RxList<String> pickupPredictions = <String>[].obs;
   final RxBool isSearchingPickup = false.obs;
   final RxList<String> dropPredictions = <String>[].obs;
@@ -41,9 +44,11 @@ class CommunityController extends GetxController {
   final RxBool showPlacesSearch = false.obs;
   Timer? _placesDebounceTimer;
   final TextEditingController commonTimeController = TextEditingController();
-  final RxString selectedIcon = 'school'.obs; // school, business, hospital, car
-  final RxString selectedCategory = 'university'
-      .obs; // university, corporate, healthcare, metro, corridor
+  final RxString selectedIcon = 'school'.obs; // school, business, hospital, home, stadium
+  final RxString selectedCategory = 'corridor'.obs;
+  final RxString selectedRecurringOption = 'Weekdays (Mon-Fri)'.obs;
+  final RxList<String> selectedRecurringDays =
+      <String>['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].obs;
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController nextRideTimeController = TextEditingController();
   final TextEditingController nextRideSeatsOpenController =
@@ -56,7 +61,27 @@ class CommunityController extends GetxController {
     'school',
     'business',
     'hospital',
-    'car',
+    'home',
+    'stadium',
+  ];
+
+  static const List<String> availableRecurringOptions = [
+    'Daily',
+    'Weekdays (Mon-Fri)',
+    'Weekends (Sat-Sun)',
+    'Weekly',
+    'Custom Days',
+    'One-time',
+  ];
+
+  static const List<String> allDaysOfWeek = [
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+    'Sun',
   ];
 
   static const List<String> availableCategories = [
@@ -69,12 +94,14 @@ class CommunityController extends GetxController {
 
   static IconData getIconData(String iconKey) {
     switch (iconKey.toLowerCase()) {
+      case 'home':
+        return Icons.home_outlined;
+      case 'stadium':
+        return Icons.stadium_outlined;
       case 'business':
         return Icons.business_center_outlined;
       case 'hospital':
         return Icons.local_hospital_outlined;
-      case 'car':
-        return Icons.directions_car_outlined;
       case 'school':
       default:
         return Icons.school_outlined;
@@ -83,12 +110,14 @@ class CommunityController extends GetxController {
 
   static String getIconLabel(String iconKey) {
     switch (iconKey.toLowerCase()) {
+      case 'home':
+        return 'Residential / Home Area (home)';
+      case 'stadium':
+        return 'Event / Stadium (stadium)';
       case 'business':
         return 'Corporate / CBD (business)';
       case 'hospital':
         return 'Hospital / Healthcare (hospital)';
-      case 'car':
-        return 'Commuter Corridor (car)';
       case 'school':
       default:
         return 'University / Campus (school)';
@@ -188,6 +217,7 @@ class CommunityController extends GetxController {
   }
 
   void onPickupSearchChanged(String query) {
+    selectedPickupPreview.value = query.trim();
     _placesDebounceTimer?.cancel();
     if (query.trim().length < 2) {
       pickupPredictions.clear();
@@ -204,11 +234,13 @@ class CommunityController extends GetxController {
 
   void selectPickupPrediction(String place) {
     pickupLocationController.text = place;
+    selectedPickupPreview.value = place.trim();
     pickupPredictions.clear();
     _syncRouteSummaryFromLocations();
   }
 
   void onDropSearchChanged(String query) {
+    selectedDropPreview.value = query.trim();
     _placesDebounceTimer?.cancel();
     if (query.trim().length < 2) {
       dropPredictions.clear();
@@ -225,6 +257,7 @@ class CommunityController extends GetxController {
 
   void selectDropPrediction(String place) {
     dropOffLocationController.text = place;
+    selectedDropPreview.value = place.trim();
     dropPredictions.clear();
     _syncRouteSummaryFromLocations();
   }
@@ -247,15 +280,20 @@ class CommunityController extends GetxController {
     routeSummaryController.clear();
     pickupLocationController.clear();
     dropOffLocationController.clear();
+    selectedPickupPreview.value = '';
+    selectedDropPreview.value = '';
+    selectedFixedLocationType.value = 'dropoff';
     pickupPredictions.clear();
     dropPredictions.clear();
-    showPlacesSearch.value = false;
+    showPlacesSearch.value = true;
     commonTimeController.text = '7:30 AM - 9:00 AM';
     selectedIcon.value = 'school';
-    selectedCategory.value = 'university';
+    selectedCategory.value = 'corridor';
+    selectedRecurringOption.value = 'Weekdays (Mon-Fri)';
+    selectedRecurringDays.assignAll(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
     descriptionController.clear();
     nextRideTimeController.text = 'Tomorrow 8:00 AM';
-    nextRideSeatsOpenController.text = '3';
+    nextRideSeatsOpenController.text = '0';
     coverImageUrlController.clear();
     isActive.value = true;
   }
@@ -266,21 +304,103 @@ class CommunityController extends GetxController {
     routeSummaryController.text = community.routeSummary;
     pickupLocationController.text = community.pickupLocation;
     dropOffLocationController.text = community.dropOffLocation;
+    selectedPickupPreview.value = community.pickupLocation;
+    selectedDropPreview.value = community.dropOffLocation;
+    selectedFixedLocationType.value = community.fixedLocationType;
     pickupPredictions.clear();
     dropPredictions.clear();
-    showPlacesSearch.value = false;
+    showPlacesSearch.value = true;
     commonTimeController.text = community.commonTime;
     selectedIcon.value = availableIcons.contains(community.icon)
         ? community.icon
         : 'school';
-    selectedCategory.value = availableCategories.contains(community.category)
-        ? community.category
-        : 'university';
+    selectedCategory.value = 'corridor';
+    selectedRecurringOption.value = community.recurringOption;
+    selectedRecurringDays.assignAll(community.recurringDays);
     descriptionController.text = community.description;
     nextRideTimeController.text = community.nextRideTime;
     nextRideSeatsOpenController.text = community.nextRideSeatsOpen.toString();
     coverImageUrlController.text = community.coverImageUrl;
     isActive.value = community.isActive;
+  }
+
+  void toggleRecurringDay(String day) {
+    if (selectedRecurringDays.contains(day)) {
+      if (selectedRecurringDays.length > 1) {
+        selectedRecurringDays.remove(day);
+      }
+    } else {
+      selectedRecurringDays.add(day);
+    }
+  }
+
+  void setRecurringOption(String option) {
+    selectedRecurringOption.value = option;
+    switch (option) {
+      case 'Daily':
+        selectedRecurringDays
+            .assignAll(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+        break;
+      case 'Weekdays (Mon-Fri)':
+        selectedRecurringDays.assignAll(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
+        break;
+      case 'Weekends (Sat-Sun)':
+        selectedRecurringDays.assignAll(['Sat', 'Sun']);
+        break;
+      case 'Weekly':
+        selectedRecurringDays.assignAll(['Mon']);
+        break;
+      case 'One-time':
+        selectedRecurringDays.clear();
+        break;
+      case 'Custom Days':
+      default:
+        break;
+    }
+  }
+
+  Future<void> pickCommonTime(BuildContext context) async {
+    final pickedStart = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 7, minute: 30),
+      helpText: 'Select Common / Peak Start Time',
+    );
+    if (pickedStart == null || !context.mounted) return;
+
+    final pickedEnd = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 9, minute: 0),
+      helpText: 'Select Common / Peak End Time',
+    );
+    if (!context.mounted) return;
+
+    final startStr = pickedStart.format(context);
+    final endStr = (pickedEnd ?? pickedStart).format(context);
+    commonTimeController.text = '$startStr - $endStr';
+  }
+
+  Future<void> pickNextRideDateTime(BuildContext context) async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      helpText: 'Select Next Commute Date',
+    );
+    if (pickedDate == null || !context.mounted) return;
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 8, minute: 0),
+      helpText: 'Select Next Commute Time',
+    );
+    if (!context.mounted) return;
+
+    final timeStr =
+        (pickedTime ?? const TimeOfDay(hour: 8, minute: 0)).format(context);
+    final dateStr =
+        '${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}';
+    nextRideTimeController.text = '$dateStr $timeStr';
   }
 
   Future<bool> saveCommunity() async {
@@ -289,15 +409,28 @@ class CommunityController extends GetxController {
     }
 
     final String name = nameController.text.trim();
-    final String routeSummary = routeSummaryController.text.trim();
+    final String pLoc = pickupLocationController.text.trim();
+    final String dLoc = dropOffLocationController.text.trim();
+    String routeSummary = routeSummaryController.text.trim();
+    if (routeSummary.isEmpty && (pLoc.isNotEmpty || dLoc.isNotEmpty)) {
+      if (pLoc.isNotEmpty && dLoc.isNotEmpty) {
+        routeSummary = '$pLoc → $dLoc';
+      } else {
+        routeSummary = pLoc.isNotEmpty ? pLoc : dLoc;
+      }
+    }
     final String commonTime = commonTimeController.text.trim();
     final String description = descriptionController.text.trim();
     final String nextRideTime = nextRideTimeController.text.trim().isEmpty
         ? 'Tomorrow 8:00 AM'
         : nextRideTimeController.text.trim();
-    final int nextRideSeatsOpen =
-        int.tryParse(nextRideSeatsOpenController.text.trim()) ?? 3;
     final String coverImageUrl = coverImageUrlController.text.trim();
+    final String fixedType = selectedFixedLocationType.value;
+    final bool isFixedPickup = fixedType == 'pickup' || fixedType == 'both';
+    final bool isFixedDropOff = fixedType == 'dropoff' || fixedType == 'both';
+    final String fixedLoc = fixedType == 'dropoff'
+        ? dLoc
+        : (fixedType == 'pickup' ? pLoc : (fixedType == 'both' ? routeSummary : ''));
 
     isSaving(true);
     try {
@@ -308,14 +441,22 @@ class CommunityController extends GetxController {
           id: docRef.id,
           name: name,
           routeSummary: routeSummary,
+          explicitPickupLocation: pLoc.isNotEmpty ? pLoc : null,
+          explicitDropOffLocation: dLoc.isNotEmpty ? dLoc : null,
+          fixedLocationType: fixedType,
+          isFixedPickup: isFixedPickup,
+          isFixedDropOff: isFixedDropOff,
+          fixedLocation: fixedLoc,
           commonTime: commonTime,
           description: description,
           icon: selectedIcon.value,
-          category: selectedCategory.value,
+          category: 'corridor',
           passengersCount: 0,
           driversCount: 0,
           nextRideTime: nextRideTime,
-          nextRideSeatsOpen: nextRideSeatsOpen,
+          nextRideSeatsOpen: 0,
+          recurringOption: selectedRecurringOption.value,
+          recurringDays: selectedRecurringDays.toList(),
           memberIds: [],
           passengerMemberIds: [],
           driverMemberIds: [],
@@ -333,18 +474,30 @@ class CommunityController extends GetxController {
           id: id,
           name: name,
           routeSummary: routeSummary,
+          explicitPickupLocation: pLoc.isNotEmpty ? pLoc : null,
+          explicitDropOffLocation: dLoc.isNotEmpty ? dLoc : null,
+          fixedLocationType: fixedType,
+          isFixedPickup: isFixedPickup,
+          isFixedDropOff: isFixedDropOff,
+          fixedLocation: fixedLoc,
         );
         await _firestore.collection('communities').doc(id).update({
           'name': name,
           'routeSummary': routeSummary,
-          'pickupLocation': temp.pickupLocation,
-          'dropOffLocation': temp.dropOffLocation,
+          'pickupLocation': pLoc.isNotEmpty ? pLoc : temp.pickupLocation,
+          'dropOffLocation': dLoc.isNotEmpty ? dLoc : temp.dropOffLocation,
+          'fixedLocationType': fixedType,
+          'isFixedPickup': isFixedPickup,
+          'isFixedDropOff': isFixedDropOff,
+          'fixedLocation': fixedLoc,
           'commonTime': commonTime,
           'description': description,
           'icon': selectedIcon.value,
-          'category': selectedCategory.value,
+          'category': 'corridor',
           'nextRideTime': nextRideTime,
-          'nextRideSeatsOpen': nextRideSeatsOpen,
+          'nextRideSeatsOpen': 0,
+          'recurringOption': selectedRecurringOption.value,
+          'recurringDays': selectedRecurringDays.toList(),
           'coverImageUrl': coverImageUrl,
           'isActive': isActive.value,
           'updatedAt': FieldValue.serverTimestamp(),

@@ -98,7 +98,7 @@ class LoginView extends GetView<AuthController> with ValidationMixin {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Sign in to manage locations & driver requests',
+                        'Sign in to manage communities & driver requests',
                         style: AppTextStyle.text14Medium.copyWith(
                           color: const Color(0xFF64748B),
                         ),

@@ -28,7 +28,7 @@ class AdminHeader extends StatelessWidget implements PreferredSizeWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -49,12 +49,9 @@ class AdminHeader extends StatelessWidget implements PreferredSizeWidget {
               title = 'Support System (Driver & Passenger Tickets)';
               subtitle = 'Manage helpdesk queries, ride issues, and user conversation threads.';
             } else if (idx == 3) {
-              title = 'Allowed Locations & Service Areas';
-              subtitle = 'Configure operating cities, center coordinates, and service radius.';
-            } else if (idx == 4) {
               title = 'Community Management';
-              subtitle = 'Manage registered user communities and ridership networks.';
-            } else if (idx == 5) {
+              subtitle = 'Manage commuter corridor communities and ridership networks.';
+            } else if (idx == 4) {
               title = 'System Settings';
               subtitle = 'Configure application preferences and administrator portal settings.';
             }

@@ -1,1 +1,28 @@
-{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"ridelink-d4408","configurations":{"web":"1:315317243384:web:250c50456615eee5ad5a0d"}}}}}}
+{
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "ridelink-d4408",
+          "configurations": {
+            "web": "1:315317243384:web:250c50456615eee5ad5a0d"
+          }
+        }
+      }
+    }
+  }
+}

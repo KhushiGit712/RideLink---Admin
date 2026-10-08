@@ -18,7 +18,7 @@ class SupportTicketController extends GetxController {
   // Filters (Section 4.1)
   final RxString selectedRoleFilter = 'All'.obs; // All, Driver, Passenger
   final RxString selectedStatusFilter =
-      'All'.obs; // All, Open, In Progress, Resolved
+      'All'.obs; // All, Open, Resolved
   final RxString selectedCategoryFilter =
       'All'.obs; // All, Fare / Payment, Ride Issue, Account / Profile, Other
 
@@ -104,9 +104,8 @@ class SupportTicketController extends GetxController {
 
       final matchesStatus =
           selectedStatusFilter.value == 'All' ||
-          (selectedStatusFilter.value == 'Open' && ticket.isOpen) ||
-          (selectedStatusFilter.value == 'In Progress' &&
-              ticket.isInProgress) ||
+          (selectedStatusFilter.value == 'Open' &&
+              (ticket.isOpen || ticket.isInProgress)) ||
           (selectedStatusFilter.value == 'Resolved' && ticket.isResolved);
 
       final matchesCategory =
@@ -118,7 +117,7 @@ class SupportTicketController extends GetxController {
   }
 
   int get totalCount => tickets.length;
-  int get openCount => tickets.where((t) => t.isOpen).length;
+  int get openCount => tickets.where((t) => !t.isResolved).length;
   int get inProgressCount => tickets.where((t) => t.isInProgress).length;
   int get resolvedCount => tickets.where((t) => t.isResolved).length;
   int get unresolvedCount => tickets.where((t) => !t.isResolved).length;
@@ -192,7 +191,7 @@ class SupportTicketController extends GetxController {
     );
 
     try {
-      final updatedStatus = current.isOpen ? 'in_progress' : current.status;
+      final updatedStatus = current.status;
 
       await _firestore.collection('support_tickets').doc(ticketId).update({
         'adminReply': replyText.trim(),
@@ -200,6 +199,35 @@ class SupportTicketController extends GetxController {
         'messages': FieldValue.arrayUnion([newMsg.toJson()]),
         'updatedAt': FieldValue.serverTimestamp(),
       });
+
+      // Send notification document so user receives a push notification via backend listener
+      if (current.userId.isNotEmpty) {
+        try {
+          await _firestore.collection('notifications').add({
+            'userId': current.userId,
+            'title': 'Support Team Replied',
+            'body': replyText.trim(),
+            'message': replyText.trim(),
+            'type': 'support_ticket_reply',
+            'ticketId': ticketId,
+            'subject': current.subject,
+            'userRole': current.userRole,
+            'senderName': adminName,
+            'senderRole': 'admin',
+            'isRead': false,
+            'read': false,
+            'createdAt': FieldValue.serverTimestamp(),
+            'timestamp': FieldValue.serverTimestamp(),
+            'data': {
+              'ticketId': ticketId,
+              'type': 'support_ticket_reply',
+              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            },
+          });
+        } catch (notifErr) {
+          debugPrint('Warning: Could not create notification document: $notifErr');
+        }
+      }
 
       // Local optimistic update
       final updatedMessages = List<TicketMessage>.from(current.messages)
