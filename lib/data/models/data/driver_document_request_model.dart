@@ -199,7 +199,6 @@ class DriverDocumentRequestModel {
   final String profileImageUrl;
   final String vehicleMake;
   final String vehicleModel;
-  final String vehicleYear;
   final String vehicleColor;
   final String vehiclePlate;
   final String vehicleType;
@@ -222,7 +221,6 @@ class DriverDocumentRequestModel {
     required this.profileImageUrl,
     required this.vehicleMake,
     required this.vehicleModel,
-    this.vehicleYear = '',
     this.vehicleColor = '',
     required this.vehiclePlate,
     this.vehicleType = 'Sedan',
@@ -279,7 +277,6 @@ class DriverDocumentRequestModel {
     String? profileImageUrl,
     String? vehicleMake,
     String? vehicleModel,
-    String? vehicleYear,
     String? vehicleColor,
     String? vehiclePlate,
     String? vehicleType,
@@ -302,7 +299,6 @@ class DriverDocumentRequestModel {
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       vehicleMake: vehicleMake ?? this.vehicleMake,
       vehicleModel: vehicleModel ?? this.vehicleModel,
-      vehicleYear: vehicleYear ?? this.vehicleYear,
       vehicleColor: vehicleColor ?? this.vehicleColor,
       vehiclePlate: vehiclePlate ?? this.vehiclePlate,
       vehicleType: vehicleType ?? this.vehicleType,
@@ -347,7 +343,6 @@ class DriverDocumentRequestModel {
         : {};
     final vMake = (vehicle['make'] ?? '').toString();
     final vModel = (vehicle['model'] ?? '').toString();
-    final vYear = (vehicle['year'] ?? '').toString();
     final vColor = (vehicle['color'] ?? '').toString();
     final vPlate = (vehicle['licensePlate'] ?? '').toString();
     final vType = (vehicle['type'] ?? 'Sedan').toString();
@@ -423,7 +418,6 @@ class DriverDocumentRequestModel {
       profileImageUrl: '',
       vehicleMake: vMake,
       vehicleModel: vModel,
-      vehicleYear: vYear,
       vehicleColor: vColor,
       vehiclePlate: vPlate,
       vehicleType: vType,
@@ -460,7 +454,6 @@ class DriverDocumentRequestModel {
       profileImageUrl: '',
       vehicleMake: (vehicle['make'] ?? '').toString(),
       vehicleModel: (vehicle['model'] ?? '').toString(),
-      vehicleYear: (vehicle['year'] ?? '').toString(),
       vehicleColor: (vehicle['color'] ?? '').toString(),
       vehiclePlate: (vehicle['licensePlate'] ?? '').toString(),
       vehicleType: (vehicle['type'] ?? 'Sedan').toString(),

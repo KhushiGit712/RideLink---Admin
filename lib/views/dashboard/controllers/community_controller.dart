@@ -466,7 +466,6 @@ class CommunityController extends GetxController {
         );
 
         await docRef.set(newCommunity.toFirestore());
-        AppSnackBar.success(message: 'Community "$name" created successfully!');
       } else {
         // Update existing community in Firestore
         final String id = editingCommunityId.value!;
@@ -502,8 +501,6 @@ class CommunityController extends GetxController {
           'isActive': isActive.value,
           'updatedAt': FieldValue.serverTimestamp(),
         });
-
-        AppSnackBar.success(message: 'Community "$name" updated successfully!');
       }
       isSaving(false);
       return true;
@@ -550,7 +547,10 @@ class CommunityController extends GetxController {
       // 2. Delete primary community document
       await _firestore.collection('communities').doc(id).delete();
       if (selectedCommunity.value?.id == id) {
-        closeCommunityMembers();
+        _membersSubscription?.cancel();
+        _membersSubscription = null;
+        selectedCommunity.value = null;
+        communityMembers.clear();
       }
       AppSnackBar.success(message: 'Community "$name" deleted successfully.');
     } catch (e) {
@@ -596,6 +596,9 @@ class CommunityController extends GetxController {
   void closeCommunityMembers() {
     _membersSubscription?.cancel();
     _membersSubscription = null;
+    if (Get.isDialogOpen == true) {
+      Get.back();
+    }
     selectedCommunity.value = null;
     communityMembers.clear();
   }

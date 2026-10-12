@@ -11,7 +11,7 @@ class AppBackButton extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: TextButton(
-        onPressed: () => Get.back(id: 1),
+        onPressed: () => Get.back(),
         child: Icon(
           CupertinoIcons.back,
           size: 18,

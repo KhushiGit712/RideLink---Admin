@@ -21,11 +21,6 @@ class CommunityManagementView extends GetView<CommunityController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Section: Header & Create Community Action
-              _buildTopHeader(context),
-
-              const SizedBox(height: 20),
-
               // Overview Metric Stat Cards
               _buildMetricCards(constraints.maxWidth),
 
@@ -45,7 +40,10 @@ class CommunityManagementView extends GetView<CommunityController> {
                           // Left Pane: Communities List (Table or Cards)
                           Expanded(
                             flex: 5,
-                            child: _buildCommunitiesListContainer(context, isWide: true),
+                            child: _buildCommunitiesListContainer(
+                              context,
+                              isWide: true,
+                            ),
                           ),
                           const SizedBox(width: 20),
                           // Right Pane: Live Corridor Inspector & Members Panel
@@ -61,56 +59,6 @@ class CommunityManagementView extends GetView<CommunityController> {
           ),
         );
       },
-    );
-  }
-
-  // --- Top Header ---
-  Widget _buildTopHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Commute Communities',
-              style: AppTextStyle.text20Medium.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-                color: const Color(0xFF0F172A),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Manage commuter corridor networks connecting passengers and drivers across transit routes.',
-              style: AppTextStyle.text12MediumOrSmall.copyWith(
-                color: const Color(0xFF64748B),
-              ),
-            ),
-          ],
-        ),
-        ElevatedButton.icon(
-          onPressed: () {
-            controller.prepareAddCommunity();
-            Get.dialog(const AddEditCommunityDialog());
-          },
-          icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
-          label: Text(
-            'Create Community',
-            style: AppTextStyle.text14Medium.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primaryColor,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -150,12 +98,14 @@ class CommunityManagementView extends GetView<CommunityController> {
 
       return Row(
         children: cards
-            .map((c) => Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: c,
-                  ),
-                ))
+            .map(
+              (c) => Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: c,
+                ),
+              ),
+            )
             .toList(),
       );
     });
@@ -185,8 +135,10 @@ class CommunityManagementView extends GetView<CommunityController> {
                 onChanged: (val) => controller.setSearchQuery(val),
                 decoration: const InputDecoration(
                   hintText: 'Search community by name or route corridor...',
-                  prefixIcon:
-                      Icon(Icons.search_rounded, color: Color(0xFF94A3B8)),
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    color: Color(0xFF94A3B8),
+                  ),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(vertical: 10),
                 ),
@@ -196,108 +148,128 @@ class CommunityManagementView extends GetView<CommunityController> {
           const SizedBox(width: 12),
 
           // Category Filter Dropdown
-          Obx(() => Container(
-                height: 42,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+          Obx(
+            () => Container(
+              height: 42,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: controller.selectedCategoryFilter.value,
+                  items: [
+                    const DropdownMenuItem(
+                      value: 'All',
+                      child: Text('All Categories'),
+                    ),
+                    ...CommunityController.availableCategories.map(
+                      (cat) => DropdownMenuItem(
+                        value: cat,
+                        child: Text(cat[0].toUpperCase() + cat.substring(1)),
+                      ),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) controller.setCategoryFilter(val);
+                  },
                 ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: controller.selectedCategoryFilter.value,
-                    items: [
-                      const DropdownMenuItem(
-                          value: 'All', child: Text('All Categories')),
-                      ...CommunityController.availableCategories.map((cat) =>
-                          DropdownMenuItem(
-                            value: cat,
-                            child:
-                                Text(cat[0].toUpperCase() + cat.substring(1)),
-                          )),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) controller.setCategoryFilter(val);
-                    },
-                  ),
-                ),
-              )),
+              ),
+            ),
+          ),
           const SizedBox(width: 10),
 
           // Status Filter Dropdown
-          Obx(() => Container(
-                height: 42,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+          Obx(
+            () => Container(
+              height: 42,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: controller.selectedStatusFilter.value,
+                  items: const [
+                    DropdownMenuItem(value: 'All', child: Text('All Statuses')),
+                    DropdownMenuItem(
+                      value: 'Active',
+                      child: Text('Active Only'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Inactive',
+                      child: Text('Inactive Only'),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) controller.setStatusFilter(val);
+                  },
                 ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: controller.selectedStatusFilter.value,
-                    items: const [
-                      DropdownMenuItem(
-                          value: 'All', child: Text('All Statuses')),
-                      DropdownMenuItem(
-                          value: 'Active', child: Text('Active Only')),
-                      DropdownMenuItem(
-                          value: 'Inactive', child: Text('Inactive Only')),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) controller.setStatusFilter(val);
-                    },
-                  ),
-                ),
-              )),
+              ),
+            ),
+          ),
           const SizedBox(width: 10),
 
           // View Switch (Table vs Grid Cards)
-          Obx(() => Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: const EdgeInsets.all(3),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.table_chart_rounded,
-                        size: 18,
-                        color: !controller.isCardView.value
-                            ? AppColors.primaryColor
-                            : const Color(0xFF64748B),
-                      ),
-                      tooltip: 'Table View',
-                      constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-                      padding: EdgeInsets.zero,
-                      onPressed: () => controller.isCardView.value = false,
+          Obx(
+            () => Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.all(3),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.table_chart_rounded,
+                      size: 18,
+                      color: !controller.isCardView.value
+                          ? AppColors.primaryColor
+                          : const Color(0xFF64748B),
                     ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.grid_view_rounded,
-                        size: 18,
-                        color: controller.isCardView.value
-                            ? AppColors.primaryColor
-                            : const Color(0xFF64748B),
-                      ),
-                      tooltip: 'Card Corridor View',
-                      constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-                      padding: EdgeInsets.zero,
-                      onPressed: () => controller.isCardView.value = true,
+                    tooltip: 'Table View',
+                    constraints: const BoxConstraints(
+                      minWidth: 34,
+                      minHeight: 34,
                     ),
-                  ],
-                ),
-              )),
+                    padding: EdgeInsets.zero,
+                    onPressed: () => controller.isCardView.value = false,
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.grid_view_rounded,
+                      size: 18,
+                      color: controller.isCardView.value
+                          ? AppColors.primaryColor
+                          : const Color(0xFF64748B),
+                    ),
+                    tooltip: 'Card Corridor View',
+                    constraints: const BoxConstraints(
+                      minWidth: 34,
+                      minHeight: 34,
+                    ),
+                    padding: EdgeInsets.zero,
+                    onPressed: () => controller.isCardView.value = true,
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   // --- Left Pane: Communities List Container ---
-  Widget _buildCommunitiesListContainer(BuildContext context, {required bool isWide}) {
+  Widget _buildCommunitiesListContainer(
+    BuildContext context, {
+    required bool isWide,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -316,8 +288,11 @@ class CommunityManagementView extends GetView<CommunityController> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.group_off_rounded,
-                    size: 48, color: Color(0xFF94A3B8)),
+                const Icon(
+                  Icons.group_off_rounded,
+                  size: 48,
+                  color: Color(0xFF94A3B8),
+                ),
                 const SizedBox(height: 12),
                 Text(
                   'No commute communities found',
@@ -349,7 +324,10 @@ class CommunityManagementView extends GetView<CommunityController> {
 
   // --- Data Table View ---
   Widget _buildDataTable(
-      BuildContext context, List<CommunityModel> list, bool isWide) {
+    BuildContext context,
+    List<CommunityModel> list,
+    bool isWide,
+  ) {
     return Obx(() {
       final selectedId = controller.selectedCommunity.value?.id;
 
@@ -362,190 +340,209 @@ class CommunityManagementView extends GetView<CommunityController> {
               child: ConstrainedBox(
                 constraints: BoxConstraints(minWidth: constraints.maxWidth),
                 child: DataTable(
-          showCheckboxColumn: false,
-          columnSpacing: 18,
-          horizontalMargin: 16,
-          headingRowHeight: 50,
-          headingRowColor: WidgetStateProperty.all(const Color(0xFFF8FAFC)),
-          columns: const [
-            DataColumn(label: Text('ICON & NAME', style: _headerStyle)),
-            DataColumn(label: Text('ROUTE CORRIDOR', style: _headerStyle)),
-            DataColumn(label: Text('PEAK COMMUTE', style: _headerStyle)),
-            DataColumn(label: Text('CATEGORY', style: _headerStyle)),
-            DataColumn(label: Text('COUNTS', style: _headerStyle)),
-            DataColumn(label: Text('STATUS', style: _headerStyle)),
-            DataColumn(label: Text('ACTIONS', style: _headerStyle)),
-          ],
-          rows: list.map((com) {
-            final isSelected = com.id == selectedId;
-
-            return DataRow(
-              selected: isSelected,
-              onSelectChanged: (_) {
-                controller.openCommunityMembers(com);
-              },
-              color: WidgetStateProperty.resolveWith<Color?>((states) {
-                if (isSelected) return const Color(0xFFEFF6FF);
-                return null;
-              }),
-              cells: [
-                // 1. Icon & Name
-                DataCell(
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(7),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? const Color(0xFFDBEAFE)
-                              : const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          CommunityController.getIconData(com.icon),
-                          color: AppColors.primaryColor,
-                          size: 18,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            com.name,
-                            style: AppTextStyle.text14Medium.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isSelected
-                                  ? const Color(0xFF1D4ED8)
-                                  : const Color(0xFF0F172A),
-                            ),
-                          ),
-                          Text(
-                            'ID: ${com.id}',
-                            style: const TextStyle(
-                              color: Color(0xFF94A3B8),
-                              fontSize: 10,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  showCheckboxColumn: false,
+                  columnSpacing: 18,
+                  horizontalMargin: 16,
+                  headingRowHeight: 50,
+                  headingRowColor: WidgetStateProperty.all(
+                    const Color(0xFFF8FAFC),
                   ),
-                ),
-
-                // 2. Route Corridor
-                DataCell(
-                  _buildRouteCorridorBadge(com),
-                ),
-
-                // 3. Peak Commute Hours
-                DataCell(
-                  Text(
-                    com.commonTime,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF475569),
+                  columns: const [
+                    DataColumn(label: Text('ICON & NAME', style: _headerStyle)),
+                    DataColumn(
+                      label: Text('ROUTE CORRIDOR', style: _headerStyle),
                     ),
-                  ),
-                ),
+                    DataColumn(
+                      label: Text('PEAK COMMUTE', style: _headerStyle),
+                    ),
+                    DataColumn(label: Text('CATEGORY', style: _headerStyle)),
+                    DataColumn(label: Text('COUNTS', style: _headerStyle)),
+                    DataColumn(label: Text('STATUS', style: _headerStyle)),
+                    DataColumn(label: Text('ACTIONS', style: _headerStyle)),
+                  ],
+                  rows: list.map((com) {
+                    final isSelected = com.id == selectedId;
 
-                // 4. Category
-                DataCell(
-                  _buildCategoryBadge(com.category),
-                ),
-
-                // 5. Counts
-                DataCell(
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF7ED),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Text(
-                          '${com.driversCount} D',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFC2410C),
+                    return DataRow(
+                      selected: isSelected,
+                      onSelectChanged: (_) {
+                        controller.openCommunityMembers(com);
+                      },
+                      color: WidgetStateProperty.resolveWith<Color?>((states) {
+                        if (isSelected) return const Color(0xFFEFF6FF);
+                        return null;
+                      }),
+                      cells: [
+                        // 1. Icon & Name
+                        DataCell(
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(7),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? const Color(0xFFDBEAFE)
+                                      : const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  CommunityController.getIconData(com.icon),
+                                  color: AppColors.primaryColor,
+                                  size: 18,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    com.name,
+                                    style: AppTextStyle.text14Medium.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected
+                                          ? const Color(0xFF1D4ED8)
+                                          : const Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                  Text(
+                                    'ID: ${com.id}',
+                                    style: const TextStyle(
+                                      color: Color(0xFF94A3B8),
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFAF5FF),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Text(
-                          '${com.passengersCount} P',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF7E22CE),
+
+                        // 2. Route Corridor
+                        DataCell(_buildRouteCorridorBadge(com)),
+
+                        // 3. Peak Commute Hours
+                        DataCell(
+                          Text(
+                            com.commonTime,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF475569),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
 
-                // 6. Status Switch
-                DataCell(
-                  Switch(
-                    value: com.isActive,
-                    activeTrackColor: const Color(0xFF2563EB),
-                    onChanged: (_) =>
-                        controller.toggleCommunityStatus(com.id),
-                  ),
-                ),
+                        // 4. Category
+                        DataCell(_buildCategoryBadge(com.category)),
 
-                // 7. Actions
-                DataCell(
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.people_alt_rounded,
-                            color: Color(0xFF10B981), size: 18),
-                        tooltip: 'View Members',
-                        onPressed: () {
-                          controller.openCommunityMembers(com);
-                          if (!isWide) {
-                            Get.dialog(const CommunityDetailsModal());
-                          }
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_rounded,
-                            color: Color(0xFF2563EB), size: 18),
-                        tooltip: 'Edit Community',
-                        onPressed: () {
-                          controller.prepareEditCommunity(com);
-                          Get.dialog(const AddEditCommunityDialog());
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline_rounded,
-                            color: Color(0xFFEF4444), size: 18),
-                        tooltip: 'Delete',
-                        onPressed: () =>
-                            _confirmDelete(context, com.id, com.name),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          }).toList(),
+                        // 5. Counts
+                        DataCell(
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF7ED),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: Text(
+                                  '${com.driversCount} D',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFC2410C),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFAF5FF),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: Text(
+                                  '${com.passengersCount} P',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF7E22CE),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 6. Status Switch
+                        DataCell(
+                          Switch(
+                            value: com.isActive,
+                            activeTrackColor: const Color(0xFF2563EB),
+                            onChanged: (_) =>
+                                controller.toggleCommunityStatus(com.id),
+                          ),
+                        ),
+
+                        // 7. Actions
+                        DataCell(
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.people_alt_rounded,
+                                  color: Color(0xFF10B981),
+                                  size: 18,
+                                ),
+                                tooltip: 'View Members',
+                                onPressed: () {
+                                  controller.openCommunityMembers(com);
+                                  if (!isWide) {
+                                    Get.dialog(
+                                      const CommunityDetailsModal(),
+                                    ).then((_) {
+                                      controller.closeCommunityMembers();
+                                    });
+                                  }
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit_rounded,
+                                  color: Color(0xFF2563EB),
+                                  size: 18,
+                                ),
+                                tooltip: 'Edit Community',
+                                onPressed: () {
+                                  controller.prepareEditCommunity(com);
+                                  Get.dialog(const AddEditCommunityDialog());
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: Color(0xFFEF4444),
+                                  size: 18,
+                                ),
+                                tooltip: 'Delete',
+                                onPressed: () =>
+                                    _confirmDelete(context, com.id, com.name),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
                 ),
               ),
             ),
@@ -557,7 +554,10 @@ class CommunityManagementView extends GetView<CommunityController> {
 
   // --- Grid / Cards View ---
   Widget _buildCardsGridView(
-      BuildContext context, List<CommunityModel> list, bool isWide) {
+    BuildContext context,
+    List<CommunityModel> list,
+    bool isWide,
+  ) {
     return Obx(() {
       final selectedId = controller.selectedCommunity.value?.id;
 
@@ -578,7 +578,9 @@ class CommunityManagementView extends GetView<CommunityController> {
             onTap: () {
               controller.openCommunityMembers(com);
               if (!isWide) {
-                Get.dialog(const CommunityDetailsModal());
+                Get.dialog(const CommunityDetailsModal()).then((_) {
+                  controller.closeCommunityMembers();
+                });
               }
             },
             borderRadius: BorderRadius.circular(14),
@@ -660,13 +662,18 @@ class CommunityManagementView extends GetView<CommunityController> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.access_time_rounded,
-                              size: 12, color: Color(0xFF64748B)),
+                          const Icon(
+                            Icons.access_time_rounded,
+                            size: 12,
+                            color: Color(0xFF64748B),
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             com.commonTime,
                             style: const TextStyle(
-                                fontSize: 11, color: Color(0xFF64748B)),
+                              fontSize: 11,
+                              color: Color(0xFF64748B),
+                            ),
                           ),
                         ],
                       ),
@@ -712,8 +719,11 @@ class CommunityManagementView extends GetView<CommunityController> {
                   color: const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(Icons.alt_route_rounded,
-                    size: 40, color: Color(0xFF94A3B8)),
+                child: const Icon(
+                  Icons.alt_route_rounded,
+                  size: 40,
+                  color: Color(0xFF94A3B8),
+                ),
               ),
               const SizedBox(height: 14),
               const Text(
@@ -728,7 +738,11 @@ class CommunityManagementView extends GetView<CommunityController> {
               const Text(
                 'Select any community from the left to inspect its live route corridor, peak commute schedule, and joined members in real-time.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Color(0xFF64748B), height: 1.4),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF64748B),
+                  height: 1.4,
+                ),
               ),
             ],
           ),
@@ -865,8 +879,11 @@ class CommunityManagementView extends GetView<CommunityController> {
                             children: [
                               const Row(
                                 children: [
-                                  Icon(Icons.alt_route_rounded,
-                                      size: 16, color: Color(0xFF2563EB)),
+                                  Icon(
+                                    Icons.alt_route_rounded,
+                                    size: 16,
+                                    color: Color(0xFF2563EB),
+                                  ),
                                   SizedBox(width: 6),
                                   Text(
                                     'ROUTE CORRIDOR',
@@ -883,20 +900,23 @@ class CommunityManagementView extends GetView<CommunityController> {
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 7, vertical: 3),
+                                      horizontal: 7,
+                                      vertical: 3,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: com.fixedLocationType == 'dropoff'
                                           ? const Color(0xFFFEE2E2)
                                           : (com.fixedLocationType == 'pickup'
-                                              ? const Color(0xFFDCFCE7)
-                                              : const Color(0xFFF1F5F9)),
+                                                ? const Color(0xFFDCFCE7)
+                                                : const Color(0xFFF1F5F9)),
                                       borderRadius: BorderRadius.circular(6),
                                       border: Border.all(
-                                        color: com.fixedLocationType == 'dropoff'
+                                        color:
+                                            com.fixedLocationType == 'dropoff'
                                             ? const Color(0xFFFECACA)
                                             : (com.fixedLocationType == 'pickup'
-                                                ? const Color(0xFFBBF7D0)
-                                                : const Color(0xFFE2E8F0)),
+                                                  ? const Color(0xFFBBF7D0)
+                                                  : const Color(0xFFE2E8F0)),
                                       ),
                                     ),
                                     child: Text(
@@ -904,23 +924,27 @@ class CommunityManagementView extends GetView<CommunityController> {
                                       style: TextStyle(
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
-                                        color: com.fixedLocationType == 'dropoff'
+                                        color:
+                                            com.fixedLocationType == 'dropoff'
                                             ? const Color(0xFFDC2626)
                                             : (com.fixedLocationType == 'pickup'
-                                                ? const Color(0xFF16A34A)
-                                                : const Color(0xFF475569)),
+                                                  ? const Color(0xFF16A34A)
+                                                  : const Color(0xFF475569)),
                                       ),
                                     ),
                                   ),
                                   const SizedBox(width: 6),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 3),
+                                      horizontal: 8,
+                                      vertical: 3,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFEFF6FF),
                                       borderRadius: BorderRadius.circular(6),
                                       border: Border.all(
-                                          color: const Color(0xFFBFDBFE)),
+                                        color: const Color(0xFFBFDBFE),
+                                      ),
                                     ),
                                     child: Text(
                                       com.isActive
@@ -949,16 +973,20 @@ class CommunityManagementView extends GetView<CommunityController> {
                               Expanded(
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.access_time_rounded,
-                                        size: 14, color: Color(0xFF64748B)),
+                                    const Icon(
+                                      Icons.access_time_rounded,
+                                      size: 14,
+                                      color: Color(0xFF64748B),
+                                    ),
                                     const SizedBox(width: 6),
                                     Expanded(
                                       child: Text(
                                         com.commonTime,
                                         style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                            color: Color(0xFF334155)),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF334155),
+                                        ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -968,16 +996,20 @@ class CommunityManagementView extends GetView<CommunityController> {
                               Expanded(
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.repeat_rounded,
-                                        size: 14, color: Color(0xFF2563EB)),
+                                    const Icon(
+                                      Icons.repeat_rounded,
+                                      size: 14,
+                                      color: Color(0xFF2563EB),
+                                    ),
                                     const SizedBox(width: 6),
                                     Expanded(
                                       child: Text(
                                         com.recurringOption,
                                         style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                            color: Color(0xFF1D4ED8)),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF1D4ED8),
+                                        ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -1023,21 +1055,27 @@ class CommunityManagementView extends GetView<CommunityController> {
                         alignment: Alignment.center,
                         child: Column(
                           children: [
-                            const Icon(Icons.group_outlined,
-                                size: 30, color: Color(0xFF94A3B8)),
+                            const Icon(
+                              Icons.group_outlined,
+                              size: 30,
+                              color: Color(0xFF94A3B8),
+                            ),
                             const SizedBox(height: 6),
                             const Text(
                               'No members joined yet',
                               style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF64748B)),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF64748B),
+                              ),
                             ),
                             const SizedBox(height: 2),
                             const Text(
                               'Members join directly via the RideLink mobile app.',
                               style: TextStyle(
-                                  fontSize: 10, color: Color(0xFF94A3B8)),
+                                fontSize: 10,
+                                color: Color(0xFF94A3B8),
+                              ),
                             ),
                           ],
                         ),
@@ -1055,8 +1093,10 @@ class CommunityManagementView extends GetView<CommunityController> {
                           itemCount: controller.communityMembers.length > 5
                               ? 5
                               : controller.communityMembers.length,
-                          separatorBuilder: (context, index) =>
-                              const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          separatorBuilder: (context, index) => const Divider(
+                            height: 1,
+                            color: Color(0xFFF1F5F9),
+                          ),
                           itemBuilder: (context, idx) {
                             final mbr = controller.communityMembers[idx];
                             final isDriver = mbr.isDriver;
@@ -1064,7 +1104,9 @@ class CommunityManagementView extends GetView<CommunityController> {
                             return ListTile(
                               dense: true,
                               contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 2),
+                                horizontal: 10,
+                                vertical: 2,
+                              ),
                               leading: CircleAvatar(
                                 radius: 14,
                                 backgroundColor: isDriver
@@ -1075,29 +1117,36 @@ class CommunityManagementView extends GetView<CommunityController> {
                                       ? mbr.name[0].toUpperCase()
                                       : 'U',
                                   style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold),
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               title: Text(
                                 mbr.name,
                                 style: const TextStyle(
-                                    fontSize: 12, fontWeight: FontWeight.bold),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               subtitle: Text(
                                 mbr.phone?.isNotEmpty == true
                                     ? mbr.phone!
                                     : (mbr.email ?? mbr.userId),
                                 style: const TextStyle(
-                                    fontSize: 10, color: Color(0xFF64748B)),
+                                  fontSize: 10,
+                                  color: Color(0xFF64748B),
+                                ),
                               ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 2),
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: isDriver
                                           ? const Color(0xFFDCFCE7)
@@ -1117,9 +1166,10 @@ class CommunityManagementView extends GetView<CommunityController> {
                                   ),
                                   IconButton(
                                     icon: const Icon(
-                                        Icons.remove_circle_outline_rounded,
-                                        size: 16,
-                                        color: Color(0xFFEF4444)),
+                                      Icons.remove_circle_outline_rounded,
+                                      size: 16,
+                                      color: Color(0xFFEF4444),
+                                    ),
                                     onPressed: () => controller
                                         .removeMemberFromCommunity(com.id, mbr),
                                   ),
@@ -1153,25 +1203,36 @@ class CommunityManagementView extends GetView<CommunityController> {
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 10),
                   ElevatedButton.icon(
                     onPressed: () {
-                      Get.dialog(const CommunityDetailsModal());
+                      Get.dialog(const CommunityDetailsModal()).then((_) {
+                        controller.closeCommunityMembers();
+                      });
                     },
-                    icon: const Icon(Icons.fullscreen_rounded,
-                        color: Colors.white, size: 16),
-                    label: const Text('All Members',
-                        style: TextStyle(color: Colors.white)),
+                    icon: const Icon(
+                      Icons.fullscreen_rounded,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    label: const Text(
+                      'All Members',
+                      style: TextStyle(color: Colors.white),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
                 ],
@@ -1281,19 +1342,19 @@ class CommunityManagementView extends GetView<CommunityController> {
       ),
       child: Text(
         label,
-        style: TextStyle(
-          color: fg,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(color: fg, fontSize: 10, fontWeight: FontWeight.bold),
       ),
     );
   }
 
-  Widget _buildRouteCorridorBadge(CommunityModel com, {bool isCompact = false}) {
+  Widget _buildRouteCorridorBadge(
+    CommunityModel com, {
+    bool isCompact = false,
+  }) {
     final pickup = com.pickupLocation;
     final dropoff = com.dropOffLocation;
-    final hasBoth = pickup != dropoff &&
+    final hasBoth =
+        pickup != dropoff &&
         dropoff.isNotEmpty &&
         dropoff != 'Corridor Destination' &&
         pickup != 'Corridor Origin';
@@ -1407,7 +1468,8 @@ class CommunityManagementView extends GetView<CommunityController> {
   Widget _buildCorridorStepper(CommunityModel com) {
     final pickup = com.pickupLocation;
     final dropoff = com.dropOffLocation;
-    final hasBoth = pickup != dropoff &&
+    final hasBoth =
+        pickup != dropoff &&
         dropoff.isNotEmpty &&
         dropoff != 'Corridor Destination' &&
         pickup != 'Corridor Origin';
@@ -1455,7 +1517,9 @@ class CommunityManagementView extends GetView<CommunityController> {
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 5, vertical: 1),
+                            horizontal: 5,
+                            vertical: 1,
+                          ),
                           decoration: BoxDecoration(
                             color: com.isPickupFixed
                                 ? const Color(0xFFDCFCE7)
@@ -1533,7 +1597,9 @@ class CommunityManagementView extends GetView<CommunityController> {
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 5, vertical: 1),
+                            horizontal: 5,
+                            vertical: 1,
+                          ),
                           decoration: BoxDecoration(
                             color: com.isDropOffFixed
                                 ? const Color(0xFFFEE2E2)
@@ -1580,8 +1646,11 @@ class CommunityManagementView extends GetView<CommunityController> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.alt_route_rounded,
-                    size: 13, color: Color(0xFF2563EB)),
+                const Icon(
+                  Icons.alt_route_rounded,
+                  size: 13,
+                  color: Color(0xFF2563EB),
+                ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -1605,25 +1674,40 @@ class CommunityManagementView extends GetView<CommunityController> {
 
   void _confirmDelete(BuildContext context, String id, String name) {
     Get.dialog(
-      AlertDialog(
-        title: const Text('Delete Community'),
-        content: Text(
-            'Are you sure you want to delete community "$name"? All subcollection member links and data will be removed.'),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
+      Builder(
+        builder: (dialogCtx) => AlertDialog(
+          title: const Text('Delete Community'),
+          content: Text(
+            'Are you sure you want to delete community "$name"? All subcollection member links and data will be removed.',
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFEF4444)),
-            onPressed: () {
-              controller.deleteCommunity(id);
-              Get.back();
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () {
+                if (Navigator.of(dialogCtx).canPop()) {
+                  Navigator.of(dialogCtx).pop();
+                } else {
+                  Get.back();
+                }
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEF4444),
+              ),
+              onPressed: () async {
+                if (Navigator.of(dialogCtx).canPop()) {
+                  Navigator.of(dialogCtx).pop();
+                } else {
+                  Get.back();
+                }
+                await controller.deleteCommunity(id);
+              },
+              child:
+                  const Text('Delete', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
   }

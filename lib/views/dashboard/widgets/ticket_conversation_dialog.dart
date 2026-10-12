@@ -4,18 +4,46 @@ import 'package:ridelink_admin/core/constants/app_colors.dart';
 import 'package:ridelink_admin/data/models/data/support_ticket_model.dart';
 import 'package:ridelink_admin/theme/app_text_style.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/support_ticket_controller.dart';
+import 'package:ridelink_admin/views/dashboard/widgets/edit_user_profile_dialog.dart';
 import 'package:ridelink_admin/views/dashboard/widgets/image_zoom_dialog.dart';
 
-class TicketConversationDialog extends StatelessWidget {
+class TicketConversationDialog extends StatefulWidget {
   const TicketConversationDialog({super.key});
+
+  @override
+  State<TicketConversationDialog> createState() =>
+      _TicketConversationDialogState();
+}
+
+class _TicketConversationDialogState extends State<TicketConversationDialog> {
+  SupportTicketModel? _cachedTicket;
+
+  void _closeModal(BuildContext context) {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Get.back();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final ticketCtrl = Get.find<SupportTicketController>();
 
     return Obx(() {
-      final ticket = ticketCtrl.selectedTicket.value;
-      if (ticket == null) return const SizedBox.shrink();
+      final current = ticketCtrl.selectedTicket.value;
+      if (current != null) {
+        _cachedTicket = current;
+      }
+      final ticket = _cachedTicket;
+      if (ticket == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && Get.isDialogOpen == true) {
+            Get.back();
+          }
+        });
+        return const SizedBox.shrink();
+      }
 
       return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -140,7 +168,7 @@ class TicketConversationDialog extends StatelessWidget {
                     const SizedBox(width: 12),
 
                     IconButton(
-                      onPressed: () => ticketCtrl.closeTicketModal(),
+                      onPressed: () => _closeModal(context),
                       icon: const Icon(
                         Icons.close_rounded,
                         color: Color(0xFF64748B),
@@ -200,6 +228,43 @@ class TicketConversationDialog extends StatelessWidget {
                             badgeColor: ticket.isDriver
                                 ? const Color(0xFFEA580C)
                                 : const Color(0xFF2563EB),
+                          ),
+                          const SizedBox(height: 10),
+                          InkWell(
+                            onTap: () {
+                              Get.dialog(
+                                EditUserProfileDialog.fromTicket(
+                                  ticket: ticket,
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border:
+                                    Border.all(color: const Color(0xFFCBD5E1)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.edit_outlined,
+                                      size: 13, color: Color(0xFF2563EB)),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'Edit User Profile',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2563EB),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
 
                           const SizedBox(height: 16),
@@ -328,10 +393,11 @@ class TicketConversationDialog extends StatelessWidget {
                                   textCancel: 'Cancel',
                                   confirmTextColor: Colors.white,
                                   buttonColor: const Color(0xFFEF4444),
-                                  onConfirm: () {
-                                    Get.back();
-                                    ticketCtrl.deleteTicket(ticket.id);
-                                    Navigator.of(context).pop();
+                                  onConfirm: () async {
+                                    final ticketId = ticket.id;
+                                    Get.back(); // close confirm dialog
+                                    _closeModal(context); // close conversation dialog
+                                    await ticketCtrl.deleteTicket(ticketId);
                                   },
                                 );
                               },

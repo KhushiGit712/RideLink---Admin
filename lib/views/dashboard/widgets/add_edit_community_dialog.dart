@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ridelink_admin/core/constants/app_colors.dart';
+import 'package:ridelink_admin/core/utils/app_snack_bar.dart';
 import 'package:ridelink_admin/theme/app_text_style.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/community_controller.dart';
 import 'package:ridelink_admin/widgets/app_button.dart';
@@ -8,6 +9,14 @@ import 'package:ridelink_admin/widgets/app_text_field.dart';
 
 class AddEditCommunityDialog extends StatelessWidget {
   const AddEditCommunityDialog({super.key});
+
+  void _closeDialog(BuildContext context) {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Get.back();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,13 +81,7 @@ class AddEditCommunityDialog extends StatelessWidget {
                     ],
                   ),
                   IconButton(
-                    onPressed: () {
-                      if (Navigator.of(context, rootNavigator: true).canPop()) {
-                        Navigator.of(context, rootNavigator: true).pop();
-                      } else {
-                        Get.back();
-                      }
-                    },
+                    onPressed: () => _closeDialog(context),
                     icon: const Icon(Icons.close_rounded,
                         color: Color(0xFF64748B)),
                   ),
@@ -860,13 +863,7 @@ class AddEditCommunityDialog extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   OutlinedButton(
-                    onPressed: () {
-                      if (Navigator.of(context, rootNavigator: true).canPop()) {
-                        Navigator.of(context, rootNavigator: true).pop();
-                      } else {
-                        Get.back();
-                      }
-                    },
+                    onPressed: () => _closeDialog(context),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 24, vertical: 14),
@@ -895,14 +892,19 @@ class AddEditCommunityDialog extends StatelessWidget {
                           onPressed: controller.isSaving.value
                               ? () {}
                               : () async {
+                                  final isEdit =
+                                      controller.editingCommunityId.value != null;
+                                  final name =
+                                      controller.nameController.text.trim();
                                   final success =
                                       await controller.saveCommunity();
-                                  if (success && context.mounted) {
-                                    if (Navigator.of(context, rootNavigator: true).canPop()) {
-                                      Navigator.of(context, rootNavigator: true).pop();
-                                    } else {
-                                      Get.back();
-                                    }
+                                  if (success) {
+                                    _closeDialog(context);
+                                    AppSnackBar.success(
+                                      message: isEdit
+                                          ? 'Community "$name" updated successfully!'
+                                          : 'Community "$name" created successfully!',
+                                    );
                                   }
                                 },
                         ),

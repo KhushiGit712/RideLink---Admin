@@ -259,10 +259,11 @@ class DriverDocumentController extends GetxController {
 
   void closeReviewModal() {
     _selectedDriverDocsSubscription?.cancel();
-    selectedRequest.value = null;
+    _selectedDriverDocsSubscription = null;
     if (Get.isDialogOpen == true) {
       Get.back();
     }
+    selectedRequest.value = null;
   }
 
   /// Updates a single document status in `users/{userId}/docs/{docId}` subcollection (Section 3.2 specification)
@@ -385,6 +386,191 @@ class DriverDocumentController extends GetxController {
       AppSnackBar.success(message: 'Document status updated to $normalizedStatus');
     } catch (e) {
       AppSnackBar.error(message: 'Failed to update document in subcollection: $e');
+    }
+  }
+
+  /// Saves the complete KYC review for a driver based on document-level approvals and rejections.
+  /// If any document is rejected, the driver status is marked as 'rejected' with the rejection reason.
+  /// If all required documents are verified, the driver status is marked as 'verified'.
+  /// Otherwise, if some are still pending and none are rejected, the driver status is marked as 'pending'.
+  Future<bool> saveKycReview({
+    required String driverId,
+    required List<DriverDocumentItem> documents,
+  }) async {
+    try {
+      final batch = _firestore.batch();
+      final now = DateTime.now().toIso8601String();
+
+      final List<DriverDocumentItem> rejectedDocs = [];
+
+      for (final doc in documents) {
+        final docRef = _firestore
+            .collection('users')
+            .doc(driverId)
+            .collection('docs')
+            .doc(doc.id);
+
+        final Map<String, dynamic> docData = {
+          'id': doc.id,
+          'title': doc.title.isNotEmpty
+              ? doc.title
+              : DriverDocumentType.getTitle(doc.id),
+          'user_id': driverId,
+          'file_url': doc.fileUrl,
+          'file_name': doc.fileName,
+          'status': doc.status.toLowerCase(),
+          'rejection_reason': doc.isRejected ? doc.rejectionReason : null,
+          'updated_at': now,
+        };
+
+        if (doc.isVerified) {
+          docData['verified_at'] =
+              doc.verifiedAt?.toIso8601String() ?? now;
+          docData['verified_by'] = doc.verifiedBy ?? 'admin';
+        } else {
+          docData['verified_at'] = null;
+          docData['verified_by'] = null;
+        }
+
+        batch.set(docRef, docData, SetOptions(merge: true));
+
+        if (doc.isRejected) {
+          rejectedDocs.add(doc);
+        }
+      }
+
+      await batch.commit();
+
+      // Determine overall status
+      final hasRejections = rejectedDocs.isNotEmpty;
+      final allRequiredVerified =
+          DriverDocumentType.requiredDocIds.every((key) {
+        final d = documents
+            .firstWhereOrNull((x) => x.id == key || x.docType == key);
+        return d != null && d.isVerified;
+      });
+
+      final Map<String, dynamic> userUpdate = {
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      String overallStatus = 'pending';
+      String? combinedRejectionReason;
+
+      if (hasRejections) {
+        overallStatus = 'rejected';
+        userUpdate['is_verified_driver'] = false;
+        userUpdate['status'] = 'rejected';
+
+        combinedRejectionReason = rejectedDocs
+            .map((d) =>
+                '${d.displayTitle}: ${d.rejectionReason ?? "Rejected by administrator"}')
+            .join('\n');
+
+        userUpdate['rejection_reason'] = combinedRejectionReason;
+        userUpdate['rejected_doc_id'] = rejectedDocs.first.id;
+        userUpdate['rejected_doc_title'] = rejectedDocs.first.displayTitle;
+      } else if (allRequiredVerified) {
+        overallStatus = 'verified';
+        userUpdate['is_verified_driver'] = true;
+        userUpdate['status'] = 'verified';
+        userUpdate['rejection_reason'] = null;
+        userUpdate['rejected_doc_id'] = null;
+        userUpdate['rejected_doc_title'] = null;
+      } else {
+        overallStatus = 'pending';
+        userUpdate['is_verified_driver'] = false;
+        userUpdate['status'] = 'pending';
+        userUpdate['rejection_reason'] = null;
+        userUpdate['rejected_doc_id'] = null;
+        userUpdate['rejected_doc_title'] = null;
+      }
+
+      await _firestore
+          .collection('users')
+          .doc(driverId)
+          .update(userUpdate);
+
+      // Create mobile notifications for rejected documents
+      for (final rDoc in rejectedDocs) {
+        try {
+          final reason = rDoc.rejectionReason?.trim();
+          await _firestore.collection('notifications').add({
+            'userId': driverId,
+            'title': 'Document Rejected: ${rDoc.displayTitle}',
+            'body': (reason != null && reason.isNotEmpty)
+                ? '${rDoc.displayTitle} was rejected: $reason'
+                : 'Your ${rDoc.displayTitle} was rejected. Please re-upload a clear document.',
+            'message': (reason != null && reason.isNotEmpty)
+                ? '${rDoc.displayTitle} was rejected: $reason'
+                : 'Your ${rDoc.displayTitle} was rejected. Please re-upload a clear document.',
+            'type': 'document_rejected',
+            'docId': rDoc.id,
+            'docTitle': rDoc.displayTitle,
+            'rejection_reason': reason,
+            'isRead': false,
+            'read': false,
+            'createdAt': FieldValue.serverTimestamp(),
+            'timestamp': FieldValue.serverTimestamp(),
+            'data': {
+              'type': 'document_rejected',
+              'docId': rDoc.id,
+              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            },
+          });
+        } catch (notifErr) {
+          debugPrint(
+              'Warning: Could not create rejection notification: $notifErr');
+        }
+      }
+
+      // If all required documents are verified and no rejection, notify approval
+      if (allRequiredVerified && !hasRejections) {
+        try {
+          await _firestore.collection('notifications').add({
+            'userId': driverId,
+            'title': 'Driver KYC Verified!',
+            'body':
+                'Congratulations! Your driver documents have been verified and your profile is approved.',
+            'message':
+                'Congratulations! Your driver documents have been verified and your profile is approved.',
+            'type': 'driver_verified',
+            'isRead': false,
+            'read': false,
+            'createdAt': FieldValue.serverTimestamp(),
+            'timestamp': FieldValue.serverTimestamp(),
+            'data': {
+              'type': 'driver_verified',
+              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            },
+          });
+        } catch (_) {}
+      }
+
+      // Optimistically update local observable list and selected item
+      final idx = requests.indexWhere(
+          (r) => r.driverId == driverId || r.id == driverId);
+      if (idx != -1) {
+        final updated = requests[idx].copyWith(
+          status: overallStatus == 'verified'
+              ? 'Verified'
+              : (overallStatus == 'rejected' ? 'Rejected' : 'Pending'),
+          isVerifiedDriver: overallStatus == 'verified',
+          rejectionReason: combinedRejectionReason,
+          documents: documents,
+        );
+        requests[idx] = updated;
+        if (selectedRequest.value?.driverId == driverId ||
+            selectedRequest.value?.id == driverId) {
+          selectedRequest.value = updated;
+        }
+      }
+
+      return true;
+    } catch (e) {
+      debugPrint('Error saving KYC review: $e');
+      AppSnackBar.error(message: 'Failed to save KYC review: $e');
+      return false;
     }
   }
 
@@ -537,6 +723,77 @@ class DriverDocumentController extends GetxController {
       );
     } catch (e) {
       AppSnackBar.error(message: 'Failed to reject application: $e');
+    }
+  }
+
+  /// Updates basic driver and vehicle details in Cloud Firestore
+  Future<bool> updateDriverBasicDetails({
+    required String driverId,
+    required String fullName,
+    required String phoneNumber,
+    String? email,
+    required String vehicleMake,
+    required String vehicleModel,
+    required String vehiclePlate,
+    required String vehicleColor,
+    String vehicleType = 'Sedan',
+  }) async {
+    try {
+      final Map<String, dynamic> vehicleMap = {
+        'make': vehicleMake.trim(),
+        'model': vehicleModel.trim(),
+        'licensePlate': vehiclePlate.trim().toUpperCase(),
+        'color': vehicleColor.trim(),
+        'type': vehicleType.trim(),
+      };
+
+      final Map<String, dynamic> userUpdate = {
+        'fullName': fullName.trim(),
+        'name': fullName.trim(),
+        'phoneNumber': phoneNumber.trim(),
+        'phone': phoneNumber.trim(),
+        'vehicle': vehicleMap,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (email != null && email.trim().isNotEmpty) {
+        userUpdate['email'] = email.trim();
+      }
+
+      await _firestore
+          .collection('users')
+          .doc(driverId)
+          .set(userUpdate, SetOptions(merge: true));
+
+      // Optimistically update memory state
+      final index = requests
+          .indexWhere((r) => r.driverId == driverId || r.id == driverId);
+      if (index != -1) {
+        final old = requests[index];
+        final updated = old.copyWith(
+          driverName: fullName.trim(),
+          driverPhone: phoneNumber.trim(),
+          driverEmail: (email != null && email.trim().isNotEmpty)
+              ? email.trim()
+              : old.driverEmail,
+          vehicleMake: vehicleMake.trim(),
+          vehicleModel: vehicleModel.trim(),
+          vehiclePlate: vehiclePlate.trim().toUpperCase(),
+          vehicleColor: vehicleColor.trim(),
+          vehicleType: vehicleType.trim(),
+        );
+        requests[index] = updated;
+        if (selectedRequest.value?.driverId == driverId ||
+            selectedRequest.value?.id == driverId) {
+          selectedRequest.value = updated;
+        }
+      }
+
+      return true;
+    } catch (e) {
+      debugPrint('Error updating driver details: $e');
+      AppSnackBar.error(message: 'Failed to update driver details: $e');
+      return false;
     }
   }
 

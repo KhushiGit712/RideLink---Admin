@@ -7,6 +7,7 @@ import 'package:ridelink_admin/views/dashboard/controllers/dashboard_controller.
 import 'package:ridelink_admin/views/dashboard/controllers/driver_document_controller.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/support_ticket_controller.dart';
 import 'package:ridelink_admin/views/dashboard/widgets/driver_review_drawer.dart';
+import 'package:ridelink_admin/views/dashboard/widgets/edit_user_profile_dialog.dart';
 import 'package:ridelink_admin/views/dashboard/widgets/ticket_conversation_dialog.dart';
 
 class OverviewTabView extends StatelessWidget {
@@ -990,7 +991,9 @@ class OverviewTabView extends StatelessWidget {
                         ElevatedButton(
                           onPressed: () {
                             driverCtrl.selectRequestForReview(req);
-                            Get.dialog(const DriverReviewDrawer());
+                            Get.dialog(const DriverReviewDrawer()).then((_) {
+                              driverCtrl.closeReviewModal();
+                            });
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: req.status == 'Pending'
@@ -1012,6 +1015,25 @@ class OverviewTabView extends StatelessWidget {
                               fontSize: 11,
                             ),
                           ),
+                        ),
+                        const SizedBox(width: 6),
+                        IconButton(
+                          tooltip: 'Edit Driver Profile',
+                          icon: const Icon(
+                            Icons.edit_outlined,
+                            size: 16,
+                            color: Color(0xFF2563EB),
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 28,
+                            minHeight: 28,
+                          ),
+                          onPressed: () {
+                            Get.dialog(
+                              EditUserProfileDialog.fromDriver(driver: req),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -1149,7 +1171,9 @@ class OverviewTabView extends StatelessWidget {
                         ElevatedButton(
                           onPressed: () {
                             ticketCtrl.selectTicket(ticket);
-                            Get.dialog(const TicketConversationDialog());
+                            Get.dialog(const TicketConversationDialog()).then((_) {
+                              ticketCtrl.closeTicketModal();
+                            });
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ticket.isOpen

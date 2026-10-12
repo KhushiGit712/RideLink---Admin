@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ridelink_admin/core/constants/app_colors.dart';
+import 'package:ridelink_admin/core/utils/app_snack_bar.dart';
 import 'package:ridelink_admin/theme/app_text_style.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/support_ticket_controller.dart';
 import 'package:ridelink_admin/views/dashboard/widgets/ticket_conversation_dialog.dart';
@@ -362,12 +363,9 @@ class SupportTicketsView extends GetView<SupportTicketController> {
                             ElevatedButton.icon(
                               onPressed: () {
                                 controller.selectTicket(t);
-                                showDialog(
-                                  context: context,
-                                  barrierDismissible: true,
-                                  builder: (_) =>
-                                      const TicketConversationDialog(),
-                                );
+                                Get.dialog(const TicketConversationDialog()).then((_) {
+                                  controller.closeTicketModal();
+                                });
                               },
                               icon: const Icon(
                                 Icons.chat_rounded,
@@ -420,9 +418,8 @@ class SupportTicketsView extends GetView<SupportTicketController> {
     String selectedCat = 'Ride Issue';
     bool isSubmitting = false;
 
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
+    Get.dialog(
+      StatefulBuilder(
         builder: (ctx, setState) => Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -448,7 +445,13 @@ class SupportTicketsView extends GetView<SupportTicketController> {
                           ),
                         ),
                         IconButton(
-                          onPressed: () => Navigator.of(ctx).pop(),
+                          onPressed: () {
+                            if (Navigator.of(ctx).canPop()) {
+                              Navigator.of(ctx).pop();
+                            } else {
+                              Get.back();
+                            }
+                          },
                           icon: const Icon(
                             Icons.close_rounded,
                             color: Color(0xFF64748B),
@@ -626,7 +629,13 @@ class SupportTicketsView extends GetView<SupportTicketController> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(),
+                          onPressed: () {
+                            if (Navigator.of(ctx).canPop()) {
+                              Navigator.of(ctx).pop();
+                            } else {
+                              Get.back();
+                            }
+                          },
                           child: const Text('Cancel'),
                         ),
                         const SizedBox(width: 12),
@@ -650,8 +659,16 @@ class SupportTicketsView extends GetView<SupportTicketController> {
                                     tripId: tripIdCtrl.text,
                                   );
                                   setState(() => isSubmitting = false);
-                                  if (ok && ctx.mounted) {
-                                    Navigator.of(ctx).pop();
+                                  if (ok) {
+                                    if (Navigator.of(ctx).canPop()) {
+                                      Navigator.of(ctx).pop();
+                                    } else {
+                                      Get.back();
+                                    }
+                                    AppSnackBar.success(
+                                      message:
+                                          'Support ticket created successfully!',
+                                    );
                                   }
                                 },
                           style: ElevatedButton.styleFrom(

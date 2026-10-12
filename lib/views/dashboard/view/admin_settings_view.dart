@@ -126,56 +126,6 @@ class AdminSettingsView extends StatelessWidget {
               ],
             ),
           ),
-
-          const SizedBox(height: 24),
-
-          // Firebase Project Status Card
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0F9FF),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFBAE6FD)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0284C7),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.cloud_done_rounded,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 18),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Firebase Production Environment',
-                        style: AppTextStyle.text16Medium.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0369A1),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Connected Project: ridelink-d4408 • Authentication Provider: Firebase Auth (Email/Password)',
-                        style: AppTextStyle.text14Medium.copyWith(
-                          color: const Color(0xFF0C4A6E),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

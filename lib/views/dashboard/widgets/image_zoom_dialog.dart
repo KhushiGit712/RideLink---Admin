@@ -184,7 +184,13 @@ class _ImageZoomDialogState extends State<ImageZoomDialog> {
                   ),
                   const SizedBox(width: 12),
                   IconButton(
-                    onPressed: () => Get.back(),
+                    onPressed: () {
+                      if (Navigator.of(context).canPop()) {
+                        Navigator.of(context).pop();
+                      } else {
+                        Get.back();
+                      }
+                    },
                     icon: const Icon(Icons.close_rounded,
                         color: Colors.white, size: 24),
                     tooltip: 'Close Preview',

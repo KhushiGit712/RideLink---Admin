@@ -4,6 +4,7 @@ import 'package:ridelink_admin/core/constants/app_colors.dart';
 import 'package:ridelink_admin/theme/app_text_style.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/driver_document_controller.dart';
 import 'package:ridelink_admin/views/dashboard/widgets/driver_review_drawer.dart';
+import 'package:ridelink_admin/views/dashboard/widgets/edit_user_profile_dialog.dart';
 
 class DriverDocumentReviewView extends GetView<DriverDocumentController> {
   const DriverDocumentReviewView({super.key});
@@ -271,38 +272,68 @@ class DriverDocumentReviewView extends GetView<DriverDocumentController> {
                           ),
                           DataCell(_buildStatusChip(req.status)),
                           DataCell(
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                controller.selectRequestForReview(req);
-                                Get.dialog(const DriverReviewDrawer());
-                              },
-                              icon: const Icon(
-                                Icons.rate_review_rounded,
-                                size: 16,
-                                color: Colors.white,
-                              ),
-                              label: Text(
-                                req.isUnsubmitted ? 'Inspect' : 'Review',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    controller.selectRequestForReview(req);
+                                    Get.dialog(const DriverReviewDrawer())
+                                        .then((_) {
+                                      controller.closeReviewModal();
+                                    });
+                                  },
+                                  icon: const Icon(
+                                    Icons.rate_review_rounded,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
+                                  label: Text(
+                                    req.isUnsubmitted ? 'Inspect' : 'Review',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: req.isPending
+                                        ? AppColors.primaryColor
+                                        : (req.isApproved
+                                            ? const Color(0xFF16A34A)
+                                            : const Color(0xFF475569)),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 8,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: req.isPending
-                                    ? AppColors.primaryColor
-                                    : (req.isApproved
-                                          ? const Color(0xFF16A34A)
-                                          : const Color(0xFF475569)),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 8,
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  tooltip: 'Edit Driver Profile',
+                                  icon: const Icon(
+                                    Icons.edit_outlined,
+                                    size: 18,
+                                    color: Color(0xFF2563EB),
+                                  ),
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: const Color(0xFFEFF6FF),
+                                    padding: const EdgeInsets.all(8),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: const BorderSide(
+                                          color: Color(0xFFBFDBFE)),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Get.dialog(EditUserProfileDialog.fromDriver(
+                                        driver: req));
+                                  },
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
+                              ],
                             ),
                           ),
                         ],

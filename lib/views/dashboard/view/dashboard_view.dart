@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:ridelink_admin/core/constants/app_colors.dart';
+import 'package:ridelink_admin/theme/app_text_style.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/dashboard_controller.dart';
 import 'package:ridelink_admin/views/dashboard/view/admin_settings_view.dart';
 import 'package:ridelink_admin/views/dashboard/view/community_management_view.dart';
@@ -56,3 +58,4 @@ class DashboardView extends GetView<DashboardController> {
     );
   }
 }
+

@@ -3,18 +3,45 @@ import 'package:get/get.dart';
 import 'package:ridelink_admin/core/constants/app_colors.dart';
 import 'package:ridelink_admin/theme/app_text_style.dart';
 import 'package:ridelink_admin/views/dashboard/controllers/community_controller.dart';
+import 'package:ridelink_admin/views/dashboard/widgets/edit_user_profile_dialog.dart';
 import 'package:ridelink_admin/data/models/data/community_model.dart';
 
-class CommunityDetailsModal extends StatelessWidget {
+class CommunityDetailsModal extends StatefulWidget {
   const CommunityDetailsModal({super.key});
+
+  @override
+  State<CommunityDetailsModal> createState() => _CommunityDetailsModalState();
+}
+
+class _CommunityDetailsModalState extends State<CommunityDetailsModal> {
+  CommunityModel? _cachedCommunity;
+
+  void _closeModal(BuildContext context) {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Get.back();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<CommunityController>();
 
     return Obx(() {
-      final com = controller.selectedCommunity.value;
-      if (com == null) return const SizedBox.shrink();
+      final current = controller.selectedCommunity.value;
+      if (current != null) {
+        _cachedCommunity = current;
+      }
+      final com = _cachedCommunity;
+      if (com == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && Get.isDialogOpen == true) {
+            Get.back();
+          }
+        });
+        return const SizedBox.shrink();
+      }
 
       return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -74,7 +101,7 @@ class CommunityDetailsModal extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    onPressed: () => controller.closeCommunityMembers(),
+                    onPressed: () => _closeModal(context),
                     icon: const Icon(Icons.close_rounded,
                         color: Color(0xFF64748B), size: 24),
                   ),
@@ -336,16 +363,44 @@ class CommunityDetailsModal extends StatelessWidget {
                                 ),
                               ),
 
-                              // Action: Remove from community
+                              // Action: Edit & Remove from community
                               DataCell(
-                                IconButton(
-                                  icon: const Icon(
-                                      Icons.remove_circle_outline_rounded,
-                                      color: Color(0xFFEF4444),
-                                      size: 18),
-                                  tooltip: 'Remove from community',
-                                  onPressed: () => _confirmRemoveMember(
-                                      context, controller, com.id, mbr),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit_outlined,
+                                        color: Color(0xFF2563EB),
+                                        size: 18,
+                                      ),
+                                      tooltip:
+                                          'Edit ${mbr.isDriver ? "Driver" : "Passenger"} Profile',
+                                      onPressed: () {
+                                        Get.dialog(
+                                          EditUserProfileDialog
+                                              .fromCommunityMember(
+                                            member: mbr,
+                                            communityId: com.id,
+                                            onSaved: () {
+                                              controller
+                                                  .openCommunityMembers(com);
+                                            },
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(width: 4),
+                                    IconButton(
+                                      icon: const Icon(
+                                          Icons.remove_circle_outline_rounded,
+                                          color: Color(0xFFEF4444),
+                                          size: 18),
+                                      tooltip: 'Remove from community',
+                                      onPressed: () => _confirmRemoveMember(
+                                          context, controller, com.id, mbr),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -366,7 +421,7 @@ class CommunityDetailsModal extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   OutlinedButton(
-                    onPressed: () => controller.closeCommunityMembers(),
+                    onPressed: () => _closeModal(context),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 24, vertical: 14),
@@ -469,25 +524,37 @@ class CommunityDetailsModal extends StatelessWidget {
   void _confirmRemoveMember(BuildContext context,
       CommunityController controller, String communityId, CommunityMemberModel member) {
     Get.dialog(
-      AlertDialog(
-        title: const Text('Remove Member'),
-        content: Text(
-            'Are you sure you want to remove "${member.name}" from this community?'),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFEF4444)),
-            onPressed: () {
-              controller.removeMemberFromCommunity(communityId, member);
-              Get.back();
-            },
-            child: const Text('Remove', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+      Builder(
+        builder: (dialogCtx) => AlertDialog(
+          title: const Text('Remove Member'),
+          content: Text(
+              'Are you sure you want to remove "${member.name}" from this community?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                if (Navigator.of(dialogCtx).canPop()) {
+                  Navigator.of(dialogCtx).pop();
+                } else {
+                  Get.back();
+                }
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFEF4444)),
+              onPressed: () async {
+                if (Navigator.of(dialogCtx).canPop()) {
+                  Navigator.of(dialogCtx).pop();
+                } else {
+                  Get.back();
+                }
+                await controller.removeMemberFromCommunity(communityId, member);
+              },
+              child: const Text('Remove', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
   }

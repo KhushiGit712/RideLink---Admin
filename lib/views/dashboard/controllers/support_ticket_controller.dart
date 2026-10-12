@@ -133,9 +133,11 @@ class SupportTicketController extends GetxController {
   }
 
   void closeTicketModal() {
+    if (Get.isDialogOpen == true) {
+      Get.back();
+    }
     selectedTicket.value = null;
     replyController.clear();
-    Get.back();
   }
 
   Future<void> updateTicketStatus(String ticketId, String newStatus) async {
@@ -293,9 +295,6 @@ class SupportTicketController extends GetxController {
       );
 
       await docRef.set(ticket.toFirestore());
-      AppSnackBar.success(
-        message: 'Support ticket #${docRef.id} created successfully!',
-      );
       return true;
     } catch (e) {
       debugPrint('Error creating support ticket: $e');
